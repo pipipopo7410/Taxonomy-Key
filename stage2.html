@@ -232,7 +232,7 @@ fields.forEach(f=>{const td=document.createElement('td');td.className='clickable
  const note=document.createElement('div');note.className='red-correction';
  const select=document.createElement('select');select.setAttribute('aria-label',`訂正${r.name}${DB.fields[f]}`);
  options(f).forEach(v=>{const opt=document.createElement('option');opt.value=v;opt.textContent=v;select.append(opt)});select.value=state.answers[f];
- const reflect=()=>{const changed=state.answers[f]!==state.initial[f];td.classList.toggle('changed',changed);originalWrap.querySelector('.red-pen-svg')?.remove();if(changed){originalWrap.insertAdjacentHTML('beforeend',circleCross);note.textContent='正：'+state.answers[f]}else note.textContent='';};
+ const reflect=()=>{const changed=state.answers[f]!==state.initial[f];td.classList.toggle('changed',changed);originalWrap.querySelector('.red-pen-svg')?.remove();if(changed){originalWrap.insertAdjacentHTML('beforeend',circleCross);note.textContent='正解：'+state.answers[f]}else note.textContent='';};
  select.addEventListener('change',()=>{state.answers[f]=select.value;state.checked=false;target.querySelectorAll('td').forEach(c=>c.classList.remove('good','bad'));reflect();save()});
  td.append(originalWrap,note,select);target.append(td);reflect();});if(state.checked)grade(false);}
 function grade(showAlert=true){let wrong=0;fields.forEach(f=>{const td=target.querySelector(`[data-field="${f}"]`),valid=state.answers[f]===rows[state.row].answers[f];td.classList.toggle('good',valid);td.classList.toggle('bad',!valid);if(!valid)wrong++});state.checked=true;save();if(showAlert)alert(wrong?`還有 ${wrong} 格需要修正。`:'💯 完美訂正！整張考卷都正確了！')}

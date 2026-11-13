@@ -200,6 +200,13 @@ body{height:100dvh!important;touch-action:none}
 .level-nav{flex-wrap:nowrap;gap:3px}.level-btn{width:clamp(19px,2.35vw,26px);height:clamp(19px,2.35vw,26px);font-size:clamp(10px,1.2vw,13px);flex-shrink:0}
 @media(max-width:640px){:root{--header-height:clamp(92px,19dvh,132px);--footer-height:70px}.header-panel{padding:4px 7px}.header-title-row{flex-wrap:wrap}.header-title-row h2{font-size:clamp(14px,4vw,19px)}.level-nav{gap:2px}.case-description{font-size:10px;line-height:1.13;max-height:calc(var(--header-height) - 54px)}.main-workspace{flex-direction:column;gap:5px;padding:5px}.stage-left{width:100%;height:48%;flex:0 0 48%;padding-left:10px}.stage-right{width:100%;flex:1;padding:4px}.bio-image{max-width:56%;max-height:96%}.detective-character{width:clamp(70px,21vw,95px);bottom:0;right:3px}.btn-speech{right:4px;bottom:39%;width:clamp(104px,33vw,145px);font-size:11px;padding:7px}.clue-box{font-size:clamp(11px,3vw,13px);line-height:1.26;padding:6px}.cards-panel{padding:3px;gap:3px}.kingdom-card{height:55px;max-width:20%}.kingdom-card .card-content{font-size:10px}}
 @media(max-height:560px) and (min-width:641px){:root{--header-height:80px;--footer-height:75px}.clue-box{font-size:12px}.btn-speech{font-size:11px}}
+
+/* 2.2.4 線索標頭獨立一行；內容在原版線索區自適應、不可滾動 */
+.clue-box .clue-heading{display:block;color:#e7f1ff;font-weight:850;font-size:1.04em;line-height:1.26;margin:0 0 clamp(6px,1vw,14px);padding-bottom:clamp(4px,.7vw,9px);border-bottom:1px solid #ffffff27}
+.clue-box .clue-body{display:block;font-weight:500;line-height:1.55;overflow-wrap:anywhere}
+.clue-box{display:none;flex-direction:column;justify-content:center;padding:clamp(13px,2.1vw,26px);font-size:clamp(12px,1.55vw,20px)}
+.clue-box.active{display:flex!important}
+@media(max-width:640px){.clue-box{font-size:clamp(11px,2.8vw,14px);padding:clamp(6px,1.5vw,10px)}.clue-box .clue-body{line-height:1.32}.clue-box .clue-heading{margin-bottom:5px;padding-bottom:3px}}
 </style>
 </head>
 <body>
@@ -511,6 +518,7 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
       const requested = selected === null ? boxes.length-1 : Number(selected);
       const current = Math.max(0, Math.min(boxes.length-1, Number.isInteger(requested)?requested:boxes.length-1));
       currentSelectedClueIndex = current;
+      boxes.forEach(box=>{if(box.dataset.formatted)return;const raw=box.textContent;const cut=raw.indexOf('：');if(cut>=0){const head=document.createElement('strong');head.className='clue-heading';head.textContent=raw.slice(0,cut+1);const body=document.createElement('span');body.className='clue-body';body.textContent=raw.slice(cut+1).trim();box.replaceChildren(head,body);}box.dataset.formatted='1';});
       boxes.forEach((box,i)=>{const on=i===current;box.classList.toggle('active',on);box.style.display=on?'block':'none';const btn=document.createElement('button');btn.type='button';btn.textContent='線索 '+(i+1);btn.className=on?'active':'';btn.setAttribute('aria-label','顯示第'+(i+1)+'條線索');btn.setAttribute('aria-pressed',String(on));btn.onclick=()=>{renderCluePager(i);saveSession()};nav.append(btn)});
     }
 
@@ -531,7 +539,7 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
         }
         if (currentClueIndex < currentCase.clues.length) {
             btn.className = 'btn-speech btn-clue-ready';
-            btn.innerText = `查看下一條線索（${currentClueIndex+1}/${currentCase.clues.length}）`;
+            btn.innerText = '看下一個線索';
             btn.onclick = showNextClue;
             return;
         }

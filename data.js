@@ -1,6 +1,6 @@
 /* 生物分類 2.2.3｜共用科學特徵資料（國中典型特徵模型） */
 window.BIO_DATA={
-  "version": "2.2.3-ui-preservation",
+  "version": "2.2.4-ui-preservation",
   "traits": {
     "nucleus": "具有細胞核",
     "wall": "具有細胞壁",
