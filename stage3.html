@@ -218,7 +218,7 @@ body{height:100dvh!important;touch-action:none}
             
             <button id="detectiveSpeechBtn" class="btn-speech" disabled></button>
 
-            <img id="characterImage" class="detective-character" src=CASE_IMAGES["999.webp"] alt="主線角色">
+            <img id="characterImage" class="detective-character" alt="主線角色">
         </div>
 
         <div class="stage-right">
@@ -382,6 +382,7 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
         if (!currentCase || isCaseSolved) return;
         caseSessions[currentCase.id] = {
             clues: currentClueIndex,
+            activeClue: currentSelectedClueIndex,
             excluded: [...document.querySelectorAll('.kingdom-card.excluded')].map(c => c.dataset.kingdom)
         };
         persistSession();
@@ -392,6 +393,7 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
     let caseIndex = lastSelectedCase;
     let currentCase = dataset[caseIndex];
     let currentClueIndex = 0;
+    let currentSelectedClueIndex = 0;
     let excludedCountAtClueStart = 0;
     let isCaseSolved = false; 
 
@@ -417,7 +419,10 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
         });
     }
 
+    let caseViewVersion = 0;
     function initCase() {
+        const viewVersion = ++caseViewVersion;
+        document.getElementById('summaryModal').classList.remove('show');
         currentCase = dataset[caseIndex];
         isCaseSolved = currentCase.solved; 
         
@@ -427,6 +432,7 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
         const charImgEl = document.getElementById("characterImage");
         charImgEl.style.opacity = 1;
         setTimeout(() => {
+            if (viewVersion !== caseViewVersion) return;
             if (currentCase.id === 6) {
                 charImgEl.src = CASE_IMAGES["777.webp"];
                 charImgEl.alt = "主治醫師";
@@ -441,14 +447,18 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
         }, 150);
         
         const imgEl = document.getElementById("bioImage");
+        imgEl.onerror = () => { imgEl.alt = '圖片載入失敗，請重新整理或重新上傳完整網站檔案'; };
         imgEl.style.opacity = 1;
         setTimeout(() => {
+            if (viewVersion !== caseViewVersion) return;
             imgEl.src = isCaseSolved ? currentCase.solvedImg : currentCase.initialImg;
             imgEl.style.opacity = 1;
         }, 150);
         
         document.getElementById("cluesContainer").innerHTML = "";
         currentClueIndex = 0;
+        currentSelectedClueIndex = 0;
+        let preferredClueIndex = null;
         excludedCountAtClueStart = 0;
         
         document.querySelectorAll(".kingdom-card").forEach(card => {
@@ -483,21 +493,25 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
                 document.getElementById('cluesContainer').appendChild(box);
             }
             currentClueIndex=count;
+            preferredClueIndex = Number.isInteger(stored?.activeClue) ? stored.activeClue : null;
             const excluded = Array.isArray(stored?.excluded) ? stored.excluded : [];
             document.querySelectorAll('.kingdom-card').forEach(card => card.classList.toggle('excluded', excluded.includes(card.dataset.kingdom)));
             updateCardLabels();
             updateDetectiveButtonUI();
             persistSession();
         }
-        renderCluePager();
+        renderCluePager(preferredClueIndex);
     }
 
 
     function renderCluePager(selected=null){
       const area=document.getElementById('cluesContainer');const boxes=[...area.querySelectorAll('.clue-box')];
       const parent=area.parentElement;let nav=parent.querySelector('.clue-index');if(!nav){nav=document.createElement('div');nav.className='clue-index';parent.insertBefore(nav,area)}
-      nav.replaceChildren();const current=(selected===null?boxes.length-1:selected);
-      boxes.forEach((box,i)=>{const on=i===current;box.classList.toggle('active',on);box.style.display=on?'block':'none';const btn=document.createElement('button');btn.type='button';btn.textContent='線索 '+(i+1);btn.className=on?'active':'';btn.setAttribute('aria-label','顯示第'+(i+1)+'條線索');btn.onclick=()=>renderCluePager(i);nav.append(btn)});
+      nav.replaceChildren();
+      const requested = selected === null ? boxes.length-1 : Number(selected);
+      const current = Math.max(0, Math.min(boxes.length-1, Number.isInteger(requested)?requested:boxes.length-1));
+      currentSelectedClueIndex = current;
+      boxes.forEach((box,i)=>{const on=i===current;box.classList.toggle('active',on);box.style.display=on?'block':'none';const btn=document.createElement('button');btn.type='button';btn.textContent='線索 '+(i+1);btn.className=on?'active':'';btn.setAttribute('aria-label','顯示第'+(i+1)+'條線索');btn.setAttribute('aria-pressed',String(on));btn.onclick=()=>{renderCluePager(i);saveSession()};nav.append(btn)});
     }
 
     function updateDetectiveButtonUI() {
@@ -544,13 +558,14 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
         const container = document.getElementById("cluesContainer");
         container.appendChild(clueEl);
         
+        const sourceViewVersion = caseViewVersion;
         setTimeout(() => {
-            clueEl.classList.add("show");
-            renderCluePager();
+            // Switching cases must not change the newly opened case's clue tab.
+            if (sourceViewVersion === caseViewVersion && clueEl.isConnected) clueEl.classList.add('show');
         }, 50);
 
         currentClueIndex++;
-        renderCluePager();
+        renderCluePager(currentClueIndex-1);
         excludedCountAtClueStart = document.querySelectorAll(".kingdom-card.excluded").length;
         
         saveSession();
@@ -591,8 +606,11 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
         if (finalAnswer === currentCase.correctKingdom) {
             const imgEl = document.getElementById("bioImage");
             imgEl.style.opacity = 1;
+            const solvedImage = currentCase.solvedImg;
+            const solvedImageView = caseViewVersion;
             setTimeout(() => {
-                imgEl.src = currentCase.solvedImg;
+                if (solvedImageView !== caseViewVersion) return;
+                imgEl.src = solvedImage;
                 imgEl.style.opacity = 1;
             }, 150);
 
@@ -604,7 +622,9 @@ const CASE_IMAGES={"777.webp":"data:image/webp;base64,UklGRjxTAABXRUJQVlA4WAoAAA
             renderNav();
             updateDetectiveButtonUI();
             
+            const solvedViewVersion = caseViewVersion;
             setTimeout(() => {
+                if (solvedViewVersion !== caseViewVersion) return;
                 document.getElementById("modalTitle").innerText = isExpedition ? "💯 成功鑑定！" : "💯 順利破案！";
                 document.getElementById("modalText").innerText = currentCase.summary;
                 document.getElementById("summaryModal").classList.add("show");

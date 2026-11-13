@@ -230,23 +230,39 @@ const DB=window.BIO_DATA,topicEl=document.getElementById('topic'),kindEl=documen
 const SAVE_KEY='bio-classification-v2-stage4-game-2-1';let rootSnapshot='',moves=[];
 function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:1,settings:{topic:topicEl.value,kind:kindEl.value,mode:modeEl.value,count:countEl.value},itemIds:items.map(x=>x.id),snapshot:rootSnapshot,moves,chosenTag}))}catch(e){}}
 function walkNodes(n){if(!n)return;nodes[n.id]=n;walkNodes(n.yes);walkNodes(n.no)}
-function replayMove(id,k){const n=nodes[id];if(!n||n.rule)return;const yes=n.group.filter(b=>b.traits[k]===true),no=n.group.filter(b=>b.traits[k]===false);if(!yes.length||!no.length)return;
- n.rule=k;if(modeEl.value!=='reverse'){n.yes=newTree(yes,id+'Y');n.no=newTree(no,id+'N')}}
-function rebuildFromHistory(){root=JSON.parse(rootSnapshot);nodes={};walkNodes(root);moves.forEach(a=>replayMove(a.id,a.k));complete=Object.values(nodes).filter(n=>n.group.length>1&&canSeparate(n.group)).every(n=>!!n.rule)}
+function replayMove(id,k){const n=nodes[id];if(!n||n.rule||!availableTraits(n.group).includes(k))return false;
+ const yes=n.group.filter(b=>b.traits[k]===true),no=n.group.filter(b=>b.traits[k]===false);
+ if(!yes.length||!no.length)return false;
+ if(modeEl.value==='reverse'){
+   if(!n.yes||!n.no)return false;
+   const expected=new Set(n.yes.group.map(x=>x.id));
+   if(yes.length!==expected.size||yes.some(x=>!expected.has(x.id)))return false;
+ }
+ n.rule=k;if(modeEl.value!=='reverse'){n.yes=newTree(yes,id+'Y');n.no=newTree(no,id+'N')}
+ return true;
+}
+function rebuildFromHistory(){root=JSON.parse(rootSnapshot);nodes={};walkNodes(root);
+ let valid=true;for(const a of moves){if(!replayMove(a.id,a.k)){valid=false;break}}
+ complete=valid&&Object.values(nodes).filter(n=>n.group.length>1&&canSeparate(n.group)).every(n=>!!n.rule);
+ return valid;
+}
 function renderTagButtons(){let keys=tags.filter(k=>items.every(x=>typeof x.traits[k]==='boolean')&&items.some(x=>x.traits[k])&&items.some(x=>!x.traits[k]));tagEl.innerHTML='';keys.forEach(k=>{const el=document.createElement('button');el.className='tag';el.type='button';el.textContent=DB.traits[k];el.dataset.trait=k;el.addEventListener('pointerdown',startDrag);tagEl.append(el)})}
 
 function mix(a){let b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function signature(b,ids){return ids.map(k=>b.traits[k]===true?'1':b.traits[k]===false?'0':'?').join('')}
 function availableTraits(group){return tags.filter(k=>group.every(b=>typeof b.traits[k]==='boolean')&&group.some(b=>b.traits[k])&&group.some(b=>!b.traits[k]))}
-function canSeparate(group){if(group.length<2)return false;return new Set(group.map(b=>signature(b,tags))).size>1}
+function canSeparate(group){if(group.length<2)return false;const known=tags.filter(k=>group.every(b=>typeof b.traits[k]==='boolean'));return new Set(group.map(b=>signature(b,known))).size>1}
 function selectPool(){
  const pool=DB.pools[topicEl.value][kindEl.value];tags=DB.allowed[topicEl.value];const need=Number(countEl.value);
+ // Only universally defined features may be used for the initial uniqueness matching.
+ // For example, shark reproduction varies across species and has no universal egg/live answer.
+ const reliableTags=tags.filter(k=>pool.every(b=>typeof b.traits[k]==='boolean'));
  // Each group only appears once per question, and each selected item must have a unique
  // signature under the allowed traits. Maximum bipartite matching prevents accidental
  // under-filling when multiple candidates share the same trait pattern.
  const groups=new Map();mix(pool).forEach(b=>{const g=b.drawGroup||b.taxon||b.id;if(!groups.has(g))groups.set(g,[]);groups.get(g).push(b)});
  const matched=new Map();const choices=mix([...groups.keys()]);
- function augment(g,seen){for(const b of mix(groups.get(g))){const sig=signature(b,tags);if(seen.has(sig))continue;seen.add(sig);const prev=matched.get(sig);if(!prev||augment(prev.group,seen)){matched.set(sig,{group:g,item:b});return true}}return false}
+ function augment(g,seen){for(const b of mix(groups.get(g))){const sig=signature(b,reliableTags);if(seen.has(sig))continue;seen.add(sig);const prev=matched.get(sig);if(!prev||augment(prev.group,seen)){matched.set(sig,{group:g,item:b});return true}}return false}
  choices.forEach(g=>augment(g,new Set()));
  const uniques=mix([...matched.values()].map(x=>x.item));items=uniques.slice(0,Math.min(need,uniques.length));return {need,actual:items.length}
 }
@@ -264,7 +280,9 @@ function render(){document.getElementById('undo').disabled=moves.length===0;
 const roster=document.getElementById('roster');roster.replaceChildren();let label=document.createElement('span');label.textContent='本題生物';label.className='roster-label';roster.append(label);
 items.forEach(item=>{const chip=document.createElement('span');chip.className='roster-item';chip.textContent=item.name;roster.append(chip)});
 treeEl.innerHTML=renderNode(root);treeEl.querySelectorAll('.slot:not([disabled])').forEach(el=>{el.onclick=()=>{if(!chosenTag){showStatus('先選擇上方一項分類特徵，再點虛線框。',true);return}place(el.dataset.node,chosenTag)};el.addEventListener('pointerenter',()=>el.classList.add('hover'));el.addEventListener('pointerleave',()=>el.classList.remove('hover'))});tagEl.querySelectorAll('.tag').forEach(el=>el.classList.toggle('selected',el.dataset.trait===chosenTag));requestAnimationFrame(fitTree)}
-function place(id,k){const n=nodes[id];if(!n||n.rule||complete)return;const y=n.group.filter(b=>b.traits[k]===true),no=n.group.filter(b=>b.traits[k]===false);if(!y.length||!no.length){showStatus('這項特徵無法區分目前這一群生物，換一項試試。',true);return}if(modeEl.value==='reverse'){
+function place(id,k){const n=nodes[id];if(!n||n.rule||complete)return;
+ if(!tags.includes(k)||!availableTraits(n.group).includes(k)){showStatus('這項特徵不適合目前這一群生物，請換一項。',true);return}
+ const y=n.group.filter(b=>b.traits[k]===true),no=n.group.filter(b=>b.traits[k]===false);if(!y.length||!no.length){showStatus('這項特徵無法區分目前這一群生物，換一項試試。',true);return}if(modeEl.value==='reverse'){
  const expected=new Set(n.yes.group.map(x=>x.id));if(y.length!==expected.size||y.some(x=>!expected.has(x.id))){showStatus('此特徵會把生物分到不同分支，請再觀察兩側。',true);return}n.rule=k;
 }else{n.rule=k;n.yes=newTree(y,id+'Y');n.no=newTree(no,id+'N')}
 moves.push({id,k});chosenTag=null;render();if(Object.values(nodes).filter(x=>x.group.length>1&&canSeparate(x.group)).every(x=>!!x.rule)){complete=true;showStatus('分類完成！你使用的分類順序是可行的。')}else showStatus('這一步成功分出了兩群。繼續選擇特徵。');saveGame()}
@@ -275,11 +293,36 @@ function endDrag(e){if(!gesture)return;let g=gesture;if(g.moving){const slot=doc
 function cancelDrag(){cleanup()}
 [topicEl,kindEl,modeEl,countEl].forEach(x=>x.addEventListener('change',start));document.getElementById('reset').onclick=start;
 document.getElementById('undo').onclick=()=>{if(!moves.length)return;moves.pop();chosenTag=null;rebuildFromHistory();render();saveGame();showStatus('已撤銷上一個分類步驟，可改用其他合理特徵。')};
+
+function validateSavedTree(node,expected,dict){
+ if(!node||!Array.isArray(node.group)||node.group.length!==expected.length||typeof node.id!=='string')return false;
+ const expectedIds=new Set(expected.map(b=>b.id));
+ if(node.group.some(b=>!b||!expectedIds.has(b.id)))return false;
+ if(new Set(node.group.map(b=>b.id)).size!==expected.length)return false;
+ for(const b of node.group){
+   const current=dict.get(b.id);
+   if(!current||JSON.stringify(current.traits)!==JSON.stringify(b.traits))return false;
+ }
+ if(Boolean(node.yes)!==Boolean(node.no))return false;
+ if(node.yes){
+   const idsYes=new Set(node.yes.group?.map(b=>b.id)),idsNo=new Set(node.no.group?.map(b=>b.id));
+   if(!idsYes.size||!idsNo.size||idsYes.size+idsNo.size!==expected.length||[...idsYes].some(id=>idsNo.has(id)))return false;
+   if(!validateSavedTree(node.yes,expected.filter(b=>idsYes.has(b.id)),dict))return false;
+   if(!validateSavedTree(node.no,expected.filter(b=>idsNo.has(b.id)),dict))return false;
+ }
+ return true;
+}
 function restoreGame(){try{const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(!saved||saved.v!==1||!saved.snapshot||!Array.isArray(saved.itemIds))return false;
   for(const id of ['topic','kind','mode','count']){const el=document.getElementById(id),v=saved.settings?.[id];if(![...el.options].some(o=>o.value===v))return false;el.value=v}
-  tags=DB.allowed[topicEl.value];const pool=DB.pools[topicEl.value][kindEl.value],dict=new Map(pool.map(b=>[b.id,b]));items=saved.itemIds.map(id=>dict.get(id));if(items.some(b=>!b)||items.length===0)return false;
+  tags=DB.allowed[topicEl.value];const pool=DB.pools[topicEl.value][kindEl.value],dict=new Map(pool.map(b=>[b.id,b]));items=saved.itemIds.map(id=>dict.get(id));if(items.some(b=>!b)||items.length===0||new Set(items.map(b=>b.id)).size!==items.length)return false;
   rootSnapshot=saved.snapshot;moves=Array.isArray(saved.moves)?saved.moves.filter(m=>m&&typeof m.id==='string'&&tags.includes(m.k)):[];chosenTag=tags.includes(saved.chosenTag)?saved.chosenTag:null;
-  rebuildFromHistory();renderTagButtons();syncRadios();render();showStatus(complete?'已恢復完成的檢索表。':'已恢復上次未完成的檢索表。');return true
+  // Never trust copied features inside an old saved tree: always compare to the
+  // current canonical database, and reject stale or corrupted saves.
+  const snapshotTree=JSON.parse(rootSnapshot);
+  if(!validateSavedTree(snapshotTree,items,dict))return false;
+  if(!rebuildFromHistory())return false;
+  if(moves.some(m=>!nodes[m.id]||nodes[m.id].rule!==m.k))return false;
+  renderTagButtons();syncRadios();render();showStatus(complete?'已恢復完成的檢索表。':'已恢復上次未完成的檢索表。');return true
  }catch(e){return false}}
 
 function syncRadios(){document.querySelectorAll('input[data-for]').forEach(r=>{r.checked=document.getElementById(r.dataset.for).value===r.value})}
@@ -287,5 +330,5 @@ document.querySelectorAll('input[data-for]').forEach(r=>r.addEventListener('chan
 function fitTree(){const viewport=document.getElementById('treeViewport');if(!viewport||!viewport.clientWidth)return;const tree=document.getElementById('tree');tree.style.transform='none';tree.style.left='0px';tree.style.top='0px';const w=tree.scrollWidth,h=tree.scrollHeight;const sw=viewport.clientWidth,sh=viewport.clientHeight;if(w<1||h<1)return;const factor=Math.min(1,(sw-3)/w,(sh-3)/h);tree.style.transform=`scale(${Math.max(.18,factor)})`;tree.style.left=Math.max(0,(sw-w*factor)/2)+'px';tree.style.top=Math.max(0,(sh-h*factor)/2)+'px'}
 window.addEventListener('resize',()=>requestAnimationFrame(fitTree));
 
-if(!restoreGame())start();
+if(!restoreGame()){syncRadios();start();}
 </script></body></html>

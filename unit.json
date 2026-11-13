@@ -1,7 +1,7 @@
 {
   "id": "classification",
   "name": "分類特訓",
-  "version": "2.2.0-ui-restored",
+  "version": "2.2.2",
   "entry": "index.html",
   "offlineFiles": [
     "index.html",
