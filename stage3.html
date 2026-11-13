@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>國中生物五界分類特訓基地 - 第三階段：絕密緝兇</title>
+    
+    <style>
+        :root {
+            --bg-color: #1a252f;
+            --text-color: #ffffff;
+            --accent-color: #e74c3c;
+            --disabled-color: #7f8c8d;
+            --header-height: 105px;   
+            --footer-height: 140px;   
+        }
+
+        html, body {
+            height: 100dvh; margin: 0; padding: 0;
+            font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+            background-color: var(--bg-color); color: var(--text-color);
+            overflow: hidden; display: flex; flex-direction: column;
+            position: fixed; width: 100%;
+            touch-action: none; /* iPad 專用：防止整個網頁被拖拉產生橡皮筋效應 */
+        }
+
+        /* 💡 頂部案件資訊區：重新規劃版面 */
+        .header-panel { 
+            height: var(--header-height); 
+            padding: 10px 25px; 
+            background-color: #111a24; 
+            border-bottom: 2px solid #34495e; 
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+        }
+
+        /* 💡 標題與題號的專屬橫列，確保兩者永遠在同一排，互不干擾 */
+        .header-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+
+        h2 { margin: 0; font-size: clamp(18px, 2.5vh, 26px); color: #3498db; }
+        .case-description { font-size: clamp(14px, 2vh, 18px); color: #ecf0f1; line-height: 1.4; }
+
+        /* 💡 題號導航圈圈：尺寸縮小、字體縮小、間距微調 */
+        .level-nav { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+        .level-btn { 
+            width: 26px; height: 26px; /* 原為 32px */
+            border-radius: 50%; border: 2px solid #3498db; 
+            background: #2c3e50; color: white; 
+            font-size: 13px; /* 縮小字體 */
+            font-weight: bold; display: flex; justify-content: center; align-items: center; 
+            cursor: pointer; transition: 0.3s; 
+        }
+        .level-btn:hover { background: #3498db; }
+        .level-btn.active { background: #e67e22; border-color: #f39c12; transform: scale(1.1); }
+        .level-btn.solved { background: #34495e; border-color: #2c3e50; color: #bdc3c7; opacity: 0.7; cursor: pointer; }
+
+        /* 中間工作區 */
+        .main-workspace { 
+            flex: 1; display: flex; padding: 15px; gap: 15px; box-sizing: border-box; 
+            height: calc(100dvh - var(--header-height) - var(--footer-height)); 
+            position: relative; z-index: 10; 
+        }
+
+        .stage-left { 
+            width: 60%; background: #243342; border-radius: 12px; box-sizing: border-box; 
+            display: flex; justify-content: flex-start; align-items: center; 
+            padding-left: 8%; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); position: relative; overflow: hidden; 
+        }
+        
+        .stage-right { 
+            width: 40%; background: #243342; border-radius: 12px; box-sizing: border-box; 
+            display: flex; flex-direction: column; padding: 15px; gap: 12px; 
+        }
+
+        .bio-image { 
+            max-width: 65%; max-height: 96%; object-fit: contain; border-radius: 8px; transition: opacity 0.4s ease-in-out; z-index: 1; 
+        }
+        
+        .detective-character { position: absolute; bottom: 0; right: 20px; width: 280px; max-height: 50vh; object-fit: contain; z-index: 10; filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.6)); pointer-events: none; transition: opacity 0.3s ease; }
+
+        .btn-speech {
+            position: absolute; bottom: 52%; right: 20px; width: 240px; padding: 14px 18px;
+            border: none; border-radius: 16px; font-size: clamp(15px, 2vh, 19px); 
+            line-height: 1.5; font-weight: bold; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4); z-index: 20; text-align: left;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        
+        .btn-speech:active:not(:disabled) { transform: scale(0.96); }
+
+        .btn-speech::after {
+            content: ''; position: absolute; bottom: -15px; left: 40px;    
+            border-width: 15px 15px 0 15px; border-style: solid; transition: border-color 0.3s;
+        }
+
+        .btn-speech:disabled { background: #7f8c8d; color: #ecf0f1; cursor: not-allowed; opacity: 0.95; }
+        .btn-speech:disabled::after { border-color: #7f8c8d transparent transparent transparent; }
+
+        .btn-clue-ready { background: #3498db; color: white; border-bottom: 5px solid #2980b9; }
+        .btn-clue-ready:hover { background: #2980b9; }
+        .btn-clue-ready::after { border-color: #3498db transparent transparent transparent; }
+        .btn-clue-ready:hover::after { border-color: #2980b9 transparent transparent transparent; }
+
+        .btn-lock-ready { background: #2ecc71; color: white; border-bottom: 5px solid #27ae60; animation: pulse 1.5s infinite; }
+        .btn-lock-ready:hover { background: #27ae60; animation: none; transform: translateY(-2px); }
+        .btn-lock-ready::after { border-color: #2ecc71 transparent transparent transparent; }
+        .btn-lock-ready:hover::after { border-color: #27ae60 transparent transparent transparent; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+
+        /* 右側線索區：特別允許觸控滾動 */
+        .clues-scroll-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 5px; -webkit-overflow-scrolling: touch; }
+        .clues-scroll-area::-webkit-scrollbar { width: 6px; }
+        .clues-scroll-area::-webkit-scrollbar-thumb { background: #34495e; border-radius: 3px; }
+        
+        .clue-box { 
+            background: #2c3e50; border-left: 8px solid #3498db; padding: 20px 22px; border-radius: 8px; 
+            font-size: clamp(17px, 2.4vh, 24px); line-height: 1.6; 
+            opacity: 0; transform: translateY(10px); transition: all 0.4s ease; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .clue-box.show { opacity: 1; transform: translateY(0); }
+        .clue-box.distractor { border-left-color: #e67e22; }
+
+        /* 卡牌區 UI 設計 */
+        .cards-panel { 
+            height: var(--footer-height); background: #111a24; display: flex; justify-content: space-around; 
+            align-items: center; padding: 0 15px; box-sizing: border-box; gap: 15px; 
+            position: relative; z-index: 50; 
+        }
+        
+        .kingdom-card { 
+            width: 18%; height: 95px; background: #ecf0f1; border: 3px solid #bdc3c7; border-radius: 12px; 
+            position: relative; z-index: 100; 
+            transition: transform 0.1s ease, background 0.3s, border-color 0.3s; cursor: grab; box-shadow: 0 6px 12px rgba(0,0,0,0.4); 
+            user-select: none; touch-action: none; overflow: hidden; 
+        }
+        .kingdom-card:active { cursor: grabbing; z-index: 999; }
+
+        .kingdom-card .card-content { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-size: 22px; font-weight: bold; color: #2c3e50; transition: 0.3s; }
+        
+        .kingdom-card.excluded .card-content { opacity: 0; }
+        .kingdom-card.excluded { background: #34495e; border-color: #c0392b; box-shadow: none; }
+        
+        .kingdom-card .ex-title { position: absolute; top: 6px; left: 8px; font-size: 14px; color: rgba(255,255,255,0.4); font-weight: bold; opacity: 0; transition: 0.3s; }
+        .kingdom-card.excluded .ex-title { opacity: 1; }
+        
+        .kingdom-card .ex-cross { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 55px; color: #e74c3c; opacity: 0; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .kingdom-card.excluded .ex-cross { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+        
+        .kingdom-card .ex-handwriting { position: absolute; bottom: 6px; right: 8px; font-family: 'Klee One', cursive, sans-serif; font-size: 18px; color: #ff7675; font-weight: bold; transform: rotate(-10deg) translate(10px, 10px); opacity: 0; transition: 0.4s ease-out; }
+        .kingdom-card.excluded .ex-handwriting { opacity: 1; transform: rotate(-10deg) translate(0, 0); }
+
+        /* 破案客製化 Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.4s; z-index: 1000; }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        
+        .modal-content { background: rgba(253, 250, 246, 0.96); width: 80%; max-width: 450px; padding: 20px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: translateY(30px); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 4px solid #27ae60; color: #2c3e50; }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+        
+        .modal-title { font-size: 22px; font-weight: bold; color: #27ae60; margin-bottom: 12px; border-bottom: 2px dashed #bdc3c7; padding-bottom: 8px; }
+        .modal-text { font-size: 16px; line-height: 1.5; margin-bottom: 20px; white-space: pre-line; }
+        
+        .modal-btn { background: #2980b9; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .modal-btn:hover { background: #2471a3; transform: translateY(-2px); }
+    
+@media (max-width:820px) {
+  .header-panel{height:auto;min-height:85px;padding:8px 12px}
+  .main-workspace{height:auto;min-height:0;padding:8px;gap:8px}
+  .stage-left{padding-left:5%;width:56%}.stage-right{width:44%;padding:10px}
+  .detective-character{width:clamp(100px,25vw,190px);right:2px}
+  .btn-speech{width:clamp(125px,24vw,205px);right:6px;font-size:12px;padding:9px;bottom:53%}
+  .clue-box{padding:11px;font-size:13px}
+  .cards-panel{height:112px;gap:7px;padding:0 7px}.kingdom-card{height:82px;width:19%}
+  .kingdom-card .card-content{font-size:clamp(11px,1.6vw,19px)}
+}
+@media (max-width:550px){.case-description{font-size:12px}.level-nav{gap:2px}.level-btn{width:22px;height:22px;font-size:11px}.cards-panel{height:88px}.kingdom-card{height:64px}.kingdom-card .card-content{font-size:11px}.stage-left{width:52%}.stage-right{width:48%}.detective-character{width:100px}.btn-speech{width:130px;font-size:11px;bottom:55%}.clue-box{font-size:12px;padding:8px}}
+
+/* 2.1：行動載具友善、避免過長案件敘述壓縮主要操作區 */
+.header-panel{flex:0 0 auto;min-height:80px;max-height:30dvh;height:auto;overflow:auto;overscroll-behavior:contain}
+.header-title-row{gap:10px;align-items:flex-start}.header-title-row h2{flex:1;min-width:0}
+.level-nav{max-width:40%;flex-shrink:0}.level-btn{font-family:inherit;padding:0}
+.main-workspace{height:auto;min-height:0;flex:1}.stage-left,.stage-right{min-height:0}
+.cards-panel{height:auto;min-height:107px;flex:0 0 auto}.kingdom-card{height:75px;min-width:0;touch-action:none}
+.kingdom-card:focus-visible,.level-btn:focus-visible{outline:3px solid #f9d56e;outline-offset:2px}
+.clues-scroll-area{min-height:0;overscroll-behavior:contain}
+.clue-box{opacity:1;transform:none}.bio-image{max-height:90%}
+@media(max-width:820px){.cards-panel{min-height:90px}.level-nav{max-width:52%}}
+@media(max-width:560px){.header-panel{padding:8px;max-height:33dvh}.header-title-row{flex-wrap:wrap}.level-nav{max-width:100%;justify-content:flex-start}.main-workspace{padding:6px;gap:5px}.stage-left{width:48%;padding:4px}.stage-right{width:52%;padding:7px}.detective-character{width:75px;opacity:.75}.btn-speech{right:4px;bottom:49%;width:110px;font-size:11px}.cards-panel{min-height:72px;height:72px}.kingdom-card{height:58px}.kingdom-card .card-content{font-size:10px}.clue-box{font-size:12px;padding:7px;line-height:1.4}.case-description{font-size:12px}}
+@media(max-width:560px){
+ .header-panel{max-height:25dvh}.header-title-row h2{font-size:17px;line-height:1.25}
+ .main-workspace{flex-direction:column;gap:6px}
+ .stage-left{width:100%;height:43%;flex:0 0 43%;justify-content:flex-start;align-items:center;padding:6px}
+ .stage-right{width:100%;height:auto;flex:1;min-height:0;padding:7px}
+ .bio-image{max-width:61%;max-height:94%}
+ .detective-character{width:91px;max-height:35vh;bottom:0;right:2px;opacity:1}
+ .btn-speech{right:5px;width:143px;bottom:42%;font-size:12px;padding:8px;z-index:20}
+ .cards-panel{height:70px;min-height:70px}
+}
+@media(prefers-reduced-motion:reduce){.clue-box,.kingdom-card,.bio-image,.detective-character{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+    <div class="header-panel">
+        <div class="header-title-row">
+            <h2 id="caseTitle">偵辦中：案件載入中...</h2>
+            <div class="level-nav" id="levelNav"></div>
+        </div>
+        <div id="caseDesc" class="case-description">案件情境載入中...</div>
+    </div>
+
+    <div class="main-workspace">
+        <div class="stage-left">
+            <img id="bioImage" class="bio-image" src="" alt="生物嫌犯畫像">
+            
+            <button id="detectiveSpeechBtn" class="btn-speech" disabled></button>
+
+            <img id="characterImage" class="detective-character" src="assets/999.webp" alt="主線角色">
+        </div>
+
+        <div class="stage-right">
+            <div class="clues-scroll-area" id="cluesContainer"></div>
+        </div>
+    </div>
+
+    <div class="cards-panel" id="cardsPanel">
+        <div class="kingdom-card" data-kingdom="原核生物界">
+            <div class="card-content">原核生物界</div>
+            <div class="ex-title">原核生物界</div><div class="ex-cross">❌</div><div class="ex-handwriting">不是它</div>
+        </div>
+        <div class="kingdom-card" data-kingdom="原生生物界">
+            <div class="card-content">原生生物界</div>
+            <div class="ex-title">原生生物界</div><div class="ex-cross">❌</div><div class="ex-handwriting">不是它</div>
+        </div>
+        <div class="kingdom-card" data-kingdom="真菌界">
+            <div class="card-content">真菌界</div>
+            <div class="ex-title">真菌界</div><div class="ex-cross">❌</div><div class="ex-handwriting">不是它</div>
+        </div>
+        <div class="kingdom-card" data-kingdom="植物界">
+            <div class="card-content">植物界</div>
+            <div class="ex-title">植物界</div><div class="ex-cross">❌</div><div class="ex-handwriting">不是它</div>
+        </div>
+        <div class="kingdom-card" data-kingdom="動物界">
+            <div class="card-content">動物界</div>
+            <div class="ex-title">動物界</div><div class="ex-cross">❌</div><div class="ex-handwriting">不是它</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="summaryModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">💯 順利破案！</div>
+            <div class="modal-text" id="modalText">總結載入中...</div>
+            <button class="modal-btn" onclick="closeSummaryModal()">關閉並檢視真相圖 🔍</button>
+        </div>
+    </div>
+
+<script>
+    const dataset = [
+        {
+            id: 1, solved: false, title: "案件檔案一：南部農田的浩劫",
+            description: "【社會經濟衝擊】南部大批農田的豆類、葉菜類在夜間遭到神祕啃食，農民巡田時驚見多處土堤被挖洞破壞，引發嚴重農業經濟損失！到底這大胃王是哪一界生物幹的好事！？",
+            initialImg: "assets/Q1.webp", solvedImg: "assets/Q1-2.webp",
+            clues: [
+                { text: "🕵️‍♂️ 受害農夫：『探長！我看過那傢伙，全身上下都是綠色的，趴在一動也不動，但沒想到牠竟然會主動覓食，啃光我的菜葉！』", isDistractor: true },
+                { text: "🔬 生物學家採樣：『顯微鏡下觀察，這些細胞皆「不具有細胞壁」，且細胞內部有非常清晰的細胞核！』", isDistractor: false },
+                { text: "🧬 獸醫解剖：『這傢伙擁有複雜的多細胞結構。在排泄物中發現大量菜葉殘渣，證明牠必須「攝取現成的有機物」來維持生命！』", isDistractor: false }
+            ], correctKingdom: "動物界", summary: "元凶是外來種【綠鬣蜥】。\n\n屬於動物界。雖然外表呈現翠綠色，但牠不具備細胞壁與葉綠體，無法行光合作用，是道道地地的消費者。由於在台灣缺乏天敵，已造成嚴重的農業浩劫。"
+        },
+        {
+            id: 2, solved: false, title: "案件檔案二：水庫綠魔潮與惡臭",
+            description: "【環境公衛衝擊】水庫表面幾天內佈滿濃稠的綠色油漆狀物質，魚類因缺氧暴斃，水體散發嚴重惡臭，更驗出「肝臟毒素」！究竟這水庫綠魔潮是哪一界生物引發的危機！？",
+            initialImg: "assets/Q2.webp", solvedImg: "assets/Q2-2.webp",
+            clues: [
+                { text: "🕵️‍♂️ 水庫管理員：『那大片黏稠物雖然會隨波逐流，但確定能行光合作用為水庫製造氧氣，是標準的生產者！』", isDistractor: true },
+                { text: "🔬 水質專家顯微報告：『仔細觀察綠色顆粒，雖然牠們含有葉綠素，但細胞內部「完全找不到任何雙層膜的葉綠體」構造！』", isDistractor: false },
+                { text: "🧪 生物化學分析：『重大突破！這些神秘單細胞雖然擁有細胞壁，但牠們的細胞中央「空空如也」，連被膜包覆的細胞核都沒有！』", isDistractor: false }
+            ], correctKingdom: "原核生物界", summary: "元凶是藍菌中的【微囊藻】。\n\n屬於原核生物界。牠們雖然擁有葉綠素，能自行製造養分（生產者），但構造極其原始，不具備細胞核與葉綠體。當優養化發生時便會爆發，釋放微囊藻毒素！"
+        },
+        {
+            id: 3, solved: false, title: "案件檔案三：豆腐坊的白色毛絨陷阱",
+            description: "【美食與經濟情境】美食街爆發神祕案件！高溫潮濕的發酵室裡，一塊塊豆腐表面短短幾天內，竟然長滿了極其濃密、像棉花糖一樣的白色毛絨絲線。這白毛陷阱究竟是哪一界生物！？",
+            initialImg: "assets/Q3.webp", solvedImg: "assets/Q3-2.webp",
+            clues: [
+                { text: "🕵️‍♂️ 豆腐攤老闆：『這豆腐長滿了白毛像植物的根一樣，但牠們沒有葉綠素，無法行光合作用，正瘋狂吸收豆腐的營養！』", isDistractor: true },
+                { text: "🔬 衛生局顯微鏡報告：『切片發現牠們是由無數細長的「菌絲」組成，且每一個細胞都具備完整的細胞核！』", isDistractor: false },
+                { text: "🧪 微生物學家指出：『牠們每個細胞都有細胞壁。正暗中分泌酵素到豆腐中，將蛋白質分解後再吸收，在生態系中扮演稱職的「分解者」！』", isDistractor: false }
+            ], correctKingdom: "真菌界", summary: "元凶是真菌界中的【黴菌（毛黴菌）】。\n\n屬於真菌界。具有細胞核與細胞壁，但沒有葉綠體。牠們利用分泌酵素進行體外消化，是生態系中不可或缺的分解者，也是知名美食「毛豆腐」的秘密！"
+        },
+        {
+            id: 4, solved: false, title: "案件檔案四：蛋殼引起的疾病",
+            description: "【公共衛生版】端午驚魂！社區立蛋大賽後集體神祕高燒襲擊！？\n社區立蛋活動結束後，數十位居民陸續出現急性腸胃炎與持續高燒。疫調發現病患觸摸蛋表面後皆未洗手就進食。究竟這隱藏在蛋表面的神祕生物是哪一界？",
+            initialImg: "assets/Q4.webp", solvedImg: "assets/Q4-2.webp",
+            clues: [
+                { text: "🕵️‍♂️ 線索一（肉眼觀察）：疫調人員指出：『蛋表面光滑，肉眼完全看不見任何生物活動痕跡。但檢驗證實，這名嫌犯當時正潛伏在微小髒污中，隨雙手轉移並藉由奪取人體內的現成營養來大量繁殖，看起來是無法自行製造養分的生物。』", isDistractor: true },
+                { text: "🔬 線索二（複式顯微鏡觀察）：疾管署報告：『我們從檢體中進行分離培養，高倍率下可觀察到獨立的細胞膜與細胞質，確認這名嫌犯是由單一個細胞獨立構成的微小個體，且在該單細胞個體外圍，包裹著一層堅固的細胞壁。』", isDistractor: false },
+                { text: "🧪 線索三（電子顯微鏡觀察）：生化定序報告：『該嫌犯內部構造极其原始。深度解剖發現，其細胞體內找不到葉綠體、也找不到粒線體；最特殊的是，內部完全找不到任何被膜包覆的結構，僅能觀測到一圈游離的 DNA 物質。』", isDistractor: false }
+            ], correctKingdom: "原核生物界", summary: "人類困擾：沙門氏菌常沾染在蛋殼表面，若立蛋活動後未洗手就進食，便會引發嚴重的集體食物中毒、腹痛與高燒。\n\n如何克服：推廣市場「洗選蛋」機制在出廠前清洗消毒蛋殼；衛教民眾落實「摸蛋後立即肥皂洗手」與「食物務必煮至全熟」的習慣。"
+        },
+        {
+            id: 5, solved: false, title: "案件檔案五：非洲旅遊須知",
+            description: "【環境公衛版】台商驚傳瘧疾重症迅速身亡！神祕「叢林詛咒」驚現台灣引發恐慌！？\n近期衛生福利部證實一起境外移入瘧疾死亡個案，病患自非洲返台後出現間歇性高燒，短短幾天內因嚴重貧血與多重器官衰竭宣告不治。究竟這潛伏在病體內的致命生物是哪一界？",
+            initialImg: "assets/Q5.webp", solvedImg: "assets/Q5-2.webp",
+            clues: [
+                { text: "🕵️‍♂️ 線索一（肉眼觀察）：疫調人員指出：『這神祕形影由蚊蟲叮咬傳播，肉眼完全看不見。它會先潛伏在人體的肝臟中，隨後攻佔並破壞紅血球，靠著強行掠奪體內的有機養分生存，看起來是無法自行製造養分的生物。』", isDistractor: true },
+                { text: "🔬 線索二（複式顯微鏡觀察）：血液抹片報告：『高倍率下觀察檢體，可觀測到獨立的細胞膜與細胞質，且細胞內部擁有清晰、被膜包覆的細胞核。最關鍵的是，該個體外圍「完全沒有細胞壁」的構造！』", isDistractor: false },
+                { text: "🧪 線索三（電子顯微鏡觀察）：生化定序報告：『該嫌犯體內找不到葉綠體，但含有執行能量代謝的粒線體。令人震驚的是，該生命體全身上下僅由單一個細胞構成，卻能獨立完成所有生命現象。』", isDistractor: false }
+            ], correctKingdom: "原生生物界", summary: "人類困擾：瘧原蟲入侵人體後會破壞紅血球，引發週期性的寒顫、高燒與嚴重貧血。近期境外移入重症個案再度敲響公衛警鐘。\n\n如何克服：前往疫區前需提前服用「預防性抗瘧藥物」，返台後若有不明發燒應主動告知旅遊史；目前國際上正積極推廣新型瘧疾疫苗與病媒蚊生態基因控制。"
+        },
+        {
+            id: 6, solved: false, title: "案件檔案六：後舌苔也是病？",
+            description: "【公共衛生版】神祕白斑奇襲！學童舌頭覆蓋黏稠「白雪」恐引發集體公衛危機！？\n連續陰雨的潮濕季節，多位學童口腔黏膜與舌頭表面竟覆蓋一層厚厚的奶垢狀神祕白斑，並伴隨劇烈灼熱感與進食困難。究竟這悄悄攻陷人類口腔的黏膜入侵者是哪一界生物？",
+            initialImg: "assets/Q6.webp", solvedImg: "assets/Q6-2.webp",
+            clues: [
+                { text: "🕵️‍♂️ 線索一（肉眼觀察）：主治醫師視診結果：『患部舌頭與口腔黏膜表面長出大片乳白色、無法輕輕拭去的黏稠斑塊，周圍組織嚴重紅腫。該未知形影固著於口腔內部，無法主動位移，看起來是無法自行製造養分的生物。』", isDistractor: true },
+                { text: "🔬 線索二（複式顯微鏡觀察）：醫院檢驗科報告：『我們從黏膜白斑刮取物檢體進行抹片染色。高倍率下確認該致病原體內擁有清晰、被膜包覆的細胞核，個體外圍包裹著一層堅固的細胞壁。進一步分析證實，這名致病原完全沒有組織分化，全身上下僅由單一個細胞構成！』", isDistractor: false },
+                { text: "🧪 線索三（電子顯微鏡觀察）：生化定序與超微結構報告：『該單細胞致病原體內找不到葉綠體，但含有執行能量代謝的粒線體。最核心的鑑定證據顯示，其細胞壁成分為幾丁質，且特定影像清晰捕捉到部分個體表面正長出小肉瘤，正在進行獨特的出芽生殖。』", isDistractor: false }
+            ], correctKingdom: "真菌界", summary: "人類困擾：致病性酵母菌（如白色念珠菌）極易在環境潮濕或人體免疫力低下時大量爆發，引發皮膚炎或口腔黏膜感染（鵝口瘡），導致紅腫、白斑與劇烈不適。\n\n如何克服：平時應落實餐具落實消毒、保持口腔清潔乾燥；臨床醫療上，醫生會使用專門針對真菌特殊細胞壁（幾丁質）或細胞膜特性設計的「抗真菌藥物」進行局部塗抹或口服治療。"
+        },
+        {
+            id: 7, solved: false, title: "案件檔案七：新種發現-植物大戰僵屍？",
+            description: "【秘境探險篇】深山驚現神祕新物種！沒有綠色的蒼白幽靈真面目究竟是誰！？\n探險隊在深山枯葉堆中，採集到一種人類從未發現過的新品種！它全身雪白透明、彷彿水晶般精緻，眾人直覺認定這是某種新型態的蕈類或真菌。這新發現的生物究竟該歸類在哪一界？",
+            initialImg: "assets/Q7.webp", solvedImg: "assets/Q7-2.webp", 
+            clues: [
+                { text: "🕵️‍♂️ 線索一（肉眼觀察）：採集隊長指出：『這個新發現的品種全身慘白、完全找不到半點綠色斑塊。它固著在土壤中不會動，靠著與地底真菌共生、間接奪取環境中的現成養分生存，看起來是無法自行製造養分的生物。』", isDistractor: true },
+                { text: "🔬 線索二（複式顯微鏡觀察）：研究中心報告：『我們切取新物種的組織切片。高倍率下確認該生物擁有高度分化、複雜的多細胞構造，每個細胞外圍包裹著一層堅固的細胞壁，內部則有清晰、被膜包覆的細胞核。要特別提醒的是，其細胞內找不到任何葉綠體，但含有執行能量代謝的粒線體！』", isDistractor: false },
+                { text: "🧪 線索三（電子顯微鏡與解剖觀察）：超微結構與構造解剖報告：『深度解剖顯示其終極定錨特徵：其莖部構造內擁有輸送水分與養分的「維管束」，且頂端那瓣狀構造經過鑑定，確認是具有雄蕊與雌蕊的「花」器官。』", isDistractor: false }
+            ], correctKingdom: "植物界", summary: "新品種大解密：恭喜你成功破案！這項挑戰證明你已具備如同真正生物學家的系統性思考邏輯，將新物種精準歸類到正確的植物界分類系統中！"
+        },
+        {
+            id: 8, solved: false, title: "案件檔案八：新種發現-海底煙囪",
+            description: "【秘境探險篇】深海驚現五彩煙囪群！不具備任何器官的神祕新品種究竟是哪一界！？\n海洋探險隊在深海礁岩上，採集到一種外型五彩斑斕、成群矗立宛如煙囪的神祕新物種。眾人爭論這新品種究竟是珊瑚、植物、還是某種礦物？它該被歸類在哪一界？",
+            initialImg: "assets/Q8.webp", solvedImg: "assets/Q8.webp",
+            clues: [
+                { text: "🕵️‍♂️ 線索一（肉眼觀察）：潛水隊長指出：『這個新發現的品種固著在岩石上，完全不會走動，也沒有任何手腳或觸手。但神奇的是，它的煙囪口會不斷有水流進出，且檢測發現它正持續濾食水中的微小有機碎屑，看起來是無法自行製造養分的生物。』", isDistractor: true },
+                { text: "🔬 線索二（複式顯微鏡觀察）：海洋所報告：『我們切取該物種的組織切片。高倍率下確認該生物是由數量龐大的細胞聚合而成的多細胞生物。然而在顯微鏡下，提示它全身上下「沒有任何肌肉、神經或真正的器官分化」，且細胞之間夾雜著許多由它本身分泌、用來硬化自己身體的「鈣質骨針」構造！』", isDistractor: false },
+                { text: "🧪 線索三（電子顯微鏡觀察）：超微結構與生化報告：『在超高倍率下解剖其體細胞構造，發現其細胞中央擁有清晰、被膜包覆的細胞核，體內找不到葉綠體，但細胞內含有協助能量代謝的粒線體。最核心的分類證據是，其所有體細胞外圍「完全沒有細胞壁」！』", isDistractor: false }
+            ], correctKingdom: "動物界", summary: "新品種大解密：恭喜你成功破案！這項挑戰證明你已具備如同真正生物學家的系統性思考邏輯，將新物種精準歸類到正確的動物界分類系統中！"
+        },
+        {
+            id: 9, solved: false, title: "案件檔案九：新種發現-惡魔手指",
+            description: "【秘境探險篇】叢林驚現神祕紅色觸手！散發惡臭的外星新物種究竟是哪一界！？\n探險隊在熱帶雨林的枯枝落葉層中，採集到一種極其駭人的新品種！它剛出土時像一顆蛋，成熟後竟然會爆裂開來，伸出數條鮮紅色的神祕觸手，看起來極像海洋中的章魚。這新物種究竟該歸類在哪一界？",
+            initialImg: "assets/Q9.webp", solvedImg: "assets/Q9-2.webp",
+            clues: [
+                { text: "🕵️‍♂️ 線索一（肉眼觀察）：採集隊長指出：『這個新物種完全不會主動位移。它的鮮紅色觸手上覆蓋著一層黏稠、散發著「腐肉惡臭」的黑色液體，吸引了大量蒼蠅前來。它固著在富含有機質的腐植土上，靠著強行吸收周遭腐爛樹木的養分生存，看起來是無法自行製造養分的生物。』", isDistractor: true },
+                { text: "🔬 線索二（複式顯微鏡觀察）：微生物所報告：『我們刮取其紅色組織進行鏡檢。高倍率下發現該新物種並非動物肉質，而是由無數細長、分枝的多細胞菌絲連結構成的生命體！每個細胞外圍包裹著一層堅固的細胞壁，內部則擁有清晰、被膜包覆的細胞核。』", isDistractor: false },
+                { text: "🧪 線索三（電子顯微鏡觀察）：超微結構與生化報告：『深度解剖顯示其終極定錨特徵：該新品種細胞內找不到任何葉綠體，但含有執行能量代謝的粒線體。最核心的鑑定證據顯示，其細胞壁的主要成分為幾丁質，且完全沒有微管束或植物的葉肉組織，完全符合真菌界特徵。』", isDistractor: false }
+            ], correctKingdom: "真菌界", summary: "新品種大解密：恭喜你成功破案！這項挑戰證明你已具備如同真正生物學家的系統性思考邏輯，將新物種精準歸類到正確的真菌界分類系統中！"
+        },
+        {
+            id: 10, solved: false, title: "案件檔案十：新種發現-水手眼球",
+            description: "【秘境探險篇】熱帶海域驚現綠色大珍珠！外表像植物彈珠的新物種究竟是哪一界！？\n潛水考察隊在熱帶海洋礁岩縫隙中，採集到一種人類從未見過的新品種！它外型呈現完美的圓球狀，表面光滑且閃耀著翠綠色的玻璃光澤，看起來就像一顆巨大的綠色珍珠。這新發現的生物究竟該歸類在哪一界？",
+            initialImg: "assets/Q10.webp", solvedImg: "assets/Q10-2.webp",
+            clues: [
+                { text: "🕵️‍♂️ 線索一（肉眼觀察）：潛水隊長指出：『這個新品種固著在海底岩石上，完全不會動，當我們試圖用手指捏它時，發現它內含大量液體。它在充足的陽光下會不斷產生微小氣泡，看起來是能自行製造養分的生物。』", isDistractor: true },
+                { text: "🔬 線索二（複式顯微鏡觀察）：海洋生物所報告：『我們將整顆巨大圓球置於高倍率下觀察，結果震驚了整個研究小組！這顆直徑達數公分的綠色新物物種，外圍包裹著一層堅固的細胞壁。然而解剖後證實，它全身上下「僅由單一個細胞構成」！它完全不具有多細胞植物的複雜組織分化。』", isDistractor: false },
+                { text: "🧪 線索三（電子顯微鏡觀察）：超微結構報告：『在超高倍率下解剖其單細胞內部構造，清晰觀察到其細胞內部擁有無數個獨立、被膜包覆的細胞核，且細胞質內含有協助能量代謝的粒線體，以及進行光合作用的葉綠體。這種「巨大單細胞、具細胞壁、有核有葉綠體」的構造，完全符合原生生物界（藻類）的特徵。』", isDistractor: false }
+            ], correctKingdom: "原生生物界", summary: "新品種大解密：恭喜你成功破案！這項挑戰證明你已具備如同真正生物學家的系統性思考邏輯，將新物種精準歸類到正確的原生生物界分類系統中！"
+        }
+    ];
+
+    // 切換分頁後仍保留本裝置的已破案進度。
+    try {
+        const solvedIds = JSON.parse(localStorage.getItem('bio2-solved-cases') || '[]');
+        dataset.forEach(c => { if (solvedIds.includes(c.id)) c.solved = true; });
+    } catch(e) { /* private browsing may block storage */ }
+
+    const SAVE_KEY = 'bio2-detective-session-2-1';
+    let caseSessions = {};
+    let lastSelectedCase = 0;
+    try {
+        const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+        if (saved && typeof saved === 'object') {
+            caseSessions = saved.cases && typeof saved.cases === 'object' ? saved.cases : {};
+            lastSelectedCase = Number.isInteger(saved.caseIndex) && saved.caseIndex >= 0 && saved.caseIndex < dataset.length ? saved.caseIndex : 0;
+        }
+    } catch(e) { /* 本機儲存受限則仍可繼續玩 */ }
+    function saveSession() {
+        if (!currentCase || isCaseSolved) return;
+        caseSessions[currentCase.id] = {
+            clues: currentClueIndex,
+            excluded: [...document.querySelectorAll('.kingdom-card.excluded')].map(c => c.dataset.kingdom)
+        };
+        persistSession();
+    }
+    function persistSession() {
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify({caseIndex, cases:caseSessions})); } catch(e) {}
+    }
+    let caseIndex = lastSelectedCase;
+    let currentCase = dataset[caseIndex];
+    let currentClueIndex = 0;
+    let excludedCountAtClueStart = 0;
+    let isCaseSolved = false; 
+
+    function renderNav() {
+        const navContainer = document.getElementById("levelNav");
+        navContainer.innerHTML = "";
+        dataset.forEach((item, index) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.setAttribute('aria-label', `第 ${item.id} 案`);
+            btn.className = "level-btn";
+            if (item.solved) btn.classList.add("solved");
+            if (index === caseIndex) btn.classList.add("active");
+            btn.innerText = item.id;
+            
+            btn.onclick = () => {
+                saveSession();
+                caseIndex = index;
+                persistSession();
+                initCase();
+            };
+            navContainer.appendChild(btn);
+        });
+    }
+
+    function initCase() {
+        currentCase = dataset[caseIndex];
+        isCaseSolved = currentCase.solved; 
+        
+        document.getElementById("caseTitle").innerText = currentCase.title;
+        document.getElementById("caseDesc").innerText = currentCase.description;
+
+        const charImgEl = document.getElementById("characterImage");
+        charImgEl.style.opacity = 0;
+        setTimeout(() => {
+            if (currentCase.id === 6) {
+                charImgEl.src = "assets/777.webp";
+                charImgEl.alt = "主治醫師";
+            } else if (currentCase.id >= 7) {
+                charImgEl.src = "assets/888.webp";
+                charImgEl.alt = "探險隊長";
+            } else {
+                charImgEl.src = "assets/999.webp";
+                charImgEl.alt = "大偵探";
+            }
+            charImgEl.style.opacity = 1;
+        }, 150);
+        
+        const imgEl = document.getElementById("bioImage");
+        imgEl.style.opacity = 0;
+        setTimeout(() => {
+            imgEl.src = isCaseSolved ? currentCase.solvedImg : currentCase.initialImg;
+            imgEl.style.opacity = 1;
+        }, 150);
+        
+        document.getElementById("cluesContainer").innerHTML = "";
+        currentClueIndex = 0;
+        excludedCountAtClueStart = 0;
+        
+        document.querySelectorAll(".kingdom-card").forEach(card => {
+            card.classList.remove("excluded");
+            card.style.transform = "translate(0px, 0px) scale(1)";
+        });
+        
+        renderNav();
+        
+        if (isCaseSolved) {
+            currentCase.clues.forEach(clueData => {
+                const clueEl = document.createElement("div");
+                clueEl.className = 'clue-box show';
+                clueEl.innerText = clueData.text;
+                document.getElementById("cluesContainer").appendChild(clueEl);
+            });
+            currentClueIndex = currentCase.clues.length;
+            
+            document.querySelectorAll(".kingdom-card").forEach(card => {
+                if (card.dataset.kingdom !== currentCase.correctKingdom) {
+                    card.classList.add("excluded");
+                }
+            });
+            updateDetectiveButtonUI();
+        } else {
+            const stored = caseSessions[currentCase.id];
+            const count = stored ? Math.min(currentCase.clues.length,Math.max(1,Number(stored.clues)||1)) : 1;
+            for (let i=0;i<count;i++) {
+                const box=document.createElement('div');
+                box.className='clue-box show';
+                box.innerText=currentCase.clues[i].text;
+                document.getElementById('cluesContainer').appendChild(box);
+            }
+            currentClueIndex=count;
+            const excluded = Array.isArray(stored?.excluded) ? stored.excluded : [];
+            document.querySelectorAll('.kingdom-card').forEach(card => card.classList.toggle('excluded', excluded.includes(card.dataset.kingdom)));
+            updateCardLabels();
+            updateDetectiveButtonUI();
+            persistSession();
+        }
+    }
+
+    function updateDetectiveButtonUI() {
+        const btn = document.getElementById('detectiveSpeechBtn');
+        const excludedCount = document.querySelectorAll('.kingdom-card.excluded').length;
+        const isExpedition = currentCase.id >= 7;
+        btn.disabled = false;
+        if (isCaseSolved) {
+            btn.className = 'btn-speech btn-lock-ready';
+            btn.innerText = dataset.some(item=>!item.solved) ? '前往下一個案件' : '重新查看破案結果';
+            btn.onclick = dataset.some(item=>!item.solved)?goToNextUnsolvedCase:()=>{
+                document.getElementById('modalTitle').innerText = '完成鑑定';
+                document.getElementById('modalText').innerText = currentCase.summary;
+                document.getElementById('summaryModal').classList.add('show');
+            };
+            return;
+        }
+        if (currentClueIndex < currentCase.clues.length) {
+            btn.className = 'btn-speech btn-clue-ready';
+            btn.innerText = `查看下一條線索（${currentClueIndex+1}/${currentCase.clues.length}）`;
+            btn.onclick = showNextClue;
+            return;
+        }
+        if (excludedCount !== 4) {
+            btn.className = 'btn-speech btn-clue-ready';
+            btn.innerText = '綜合線索，留下唯一可能的生物界';
+            btn.disabled = true;
+            btn.onclick = null;
+        } else {
+            btn.className = 'btn-speech btn-lock-ready';
+            btn.innerText = '鎖定分類，揭曉真相';
+            btn.onclick = lockAnswer;
+        }
+    }
+
+    function showNextClue() {
+        if (currentClueIndex >= currentCase.clues.length) return;
+
+        const clueData = currentCase.clues[currentClueIndex];
+        const clueEl = document.createElement("div");
+        clueEl.className = 'clue-box';
+        clueEl.innerText = clueData.text;
+        
+        const container = document.getElementById("cluesContainer");
+        container.appendChild(clueEl);
+        
+        setTimeout(() => {
+            clueEl.classList.add("show");
+            // 平滑滾動到底部
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        }, 50);
+
+        currentClueIndex++;
+        excludedCountAtClueStart = document.querySelectorAll(".kingdom-card.excluded").length;
+        
+        saveSession();
+        updateDetectiveButtonUI();
+    }
+
+    function getAIHint(wrongChoice) {
+        const hints = {
+            "原核生物界": "原核生物『絕對沒有細胞核』，請仔細確認這傢伙的細胞核與其他特徵！",
+            "原生生物界": "原生生物的特徵較多樣，但請務必確認它的『細胞壁』和『取得養分的方式』是否有衝突！",
+            "真菌界": "一般真菌具有細胞壁且沒有葉綠體；不一定都擔任分解者，請比較細胞構造及營養來源。",
+            "植物界": "植物界絕大多數具備『葉綠體』與『細胞壁』，它是嗎？再仔細檢查！",
+            "動物界": "動物界『絕對不會有細胞壁』，請重新確認顯微鏡下的構造線索！"
+        };
+        return hints[wrongChoice] || "請重新檢視特徵！";
+    }
+
+    function lockAnswer() {
+        const activeCards = Array.from(document.querySelectorAll(".kingdom-card:not(.excluded)"));
+        const isExpedition = currentCase.id >= 7; 
+        
+        if (activeCards.length > 1) {
+            const msg = isExpedition
+                ? `⚠️ 系統提示：目前還有 ${activeCards.length} 個可能的生物界尚未排除，若資訊不夠請利用「不是它」的卡牌重新梳理邏輯！`
+                : `⚠️ 偵探提示：目前現場還有 ${activeCards.length} 個嫌疑犯尚未排除，若線索不夠請利用「不是它」的卡牌重新梳理邏輯！`;
+            alert(msg);
+            return;
+        }
+        if (activeCards.length === 0) {
+            const msg = isExpedition
+                ? "⚠️ 錯誤：你把所有生物界通通滑掉了！請將「不是它」的卡牌再滑一次來復原並重新推論。"
+                : "⚠️ 錯誤：你把嫌疑犯通通滑掉了！請將「不是它」的卡牌再滑一次來復原並重新推論。";
+            alert(msg);
+            return;
+        }
+
+        const finalAnswer = activeCards[0].dataset.kingdom;
+        if (finalAnswer === currentCase.correctKingdom) {
+            const imgEl = document.getElementById("bioImage");
+            imgEl.style.opacity = 0;
+            setTimeout(() => {
+                imgEl.src = currentCase.solvedImg;
+                imgEl.style.opacity = 1;
+            }, 150);
+
+            currentCase.solved = true;
+            isCaseSolved = true;
+            delete caseSessions[currentCase.id];
+            persistSession();
+            try { localStorage.setItem("bio2-solved-cases", JSON.stringify(dataset.filter(c=>c.solved).map(c=>c.id))); } catch(e) {}
+            renderNav();
+            updateDetectiveButtonUI();
+            
+            setTimeout(() => {
+                document.getElementById("modalTitle").innerText = isExpedition ? "💯 成功鑑定！" : "💯 順利破案！";
+                document.getElementById("modalText").innerText = currentCase.summary;
+                document.getElementById("summaryModal").classList.add("show");
+            }, 300);
+
+        } else {
+            const hint = getAIHint(finalAnswer);
+            const msg = `目前選擇的是【${finalAnswer}】，和證據不符。\n\n提示：${hint}\n\n這次保留已揭露的線索，請調整排除卡片，再試一次。`;
+            alert(msg);
+            saveSession();
+        }
+    }
+
+    function closeSummaryModal() {
+        document.getElementById("summaryModal").classList.remove("show");
+    }
+
+    function goToNextUnsolvedCase() {
+        const nextUnsolvedIndex = dataset.findIndex(item => !item.solved);
+        if (nextUnsolvedIndex !== -1) {
+            saveSession();
+            caseIndex = nextUnsolvedIndex;
+            persistSession();
+            initCase();
+        } else {
+            alert("🏆 恭喜大偵探！你已經成功偵破所有生物界懸案並完成新物種鑑定，完美結訓！");
+        }
+    }
+
+    // 2.1：點一下即可排除／恢復，拖曳較遠也能排除；統一 Pointer Events，避免觸控滑鼠事件重複觸發。
+    const THRESHOLD=42;
+    function updateCardLabels() {
+        document.querySelectorAll('.kingdom-card').forEach(card=>{
+            const excluded=card.classList.contains('excluded');
+            card.setAttribute('role','button');
+            card.setAttribute('tabindex','0');
+            card.setAttribute('aria-pressed',String(excluded));
+            card.setAttribute('aria-label',`${card.dataset.kingdom}${excluded?'，已排除；點選恢復':'，未排除；點選排除'}`);
+        });
+    }
+    function toggleExclude(card) {
+        if(isCaseSolved)return;
+        card.classList.toggle('excluded');
+        card.style.transform='translate(0px,0px)';
+        updateCardLabels();
+        saveSession();
+        updateDetectiveButtonUI();
+    }
+    document.querySelectorAll('.kingdom-card').forEach(card=>{
+        let g=null;
+        card.addEventListener('pointerdown',e=>{
+            if(isCaseSolved||e.button!==0)return;
+            g={x:e.clientX,y:e.clientY,moved:false};
+            try{card.setPointerCapture(e.pointerId)}catch(err){}
+        });
+        card.addEventListener('pointermove',e=>{
+            if(!g)return;
+            const dx=e.clientX-g.x,dy=e.clientY-g.y;
+            if(Math.hypot(dx,dy)>8)g.moved=true;
+            if(g.moved)card.style.transform=`translate(${Math.max(-100,Math.min(100,dx))}px,${Math.max(-30,Math.min(30,dy))}px) rotate(${Math.max(-8,Math.min(8,dx*.08))}deg)`;
+        });
+        card.addEventListener('pointerup',e=>{
+            if(!g)return;
+            const distance=Math.hypot(e.clientX-g.x,e.clientY-g.y),drag=g.moved;
+            g=null;card.style.transform='translate(0px,0px)';
+            if(!drag||distance>=THRESHOLD)toggleExclude(card);
+        });
+        card.addEventListener('pointercancel',()=>{g=null;card.style.transform='translate(0px,0px)'});
+        card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleExclude(card)}});
+    });
+    updateCardLabels();
+
+    window.onload = initCase;
+</script>
+</body>
+</html>
