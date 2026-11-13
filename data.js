@@ -1,6 +1,6 @@
-/* 生物分類 2.2.3｜共用科學特徵資料（國中典型特徵模型） */
+/* 生物分類 2.2.5｜共用題庫；第一頁依原版指定免答欄位塗黑。 */
 window.BIO_DATA={
-  "version": "2.2.4-ui-preservation",
+  "version": "2.2.5-stamp-and-drag-fix",
   "traits": {
     "nucleus": "具有細胞核",
     "wall": "具有細胞壁",
@@ -2006,7 +2006,9 @@ window.BIO_DATA={
       "營養器官繁殖",
       "多樣",
       "不在國中討論",
-      "不適用"
+      "不適用",
+      "出芽生殖、斷裂生殖",
+      "出芽生殖、孢子繁殖"
     ],
     "sexual": [
       "有",
@@ -2028,7 +2030,7 @@ window.BIO_DATA={
         "chlorophyll": "無",
         "chloroplast": "無",
         "mito": "無",
-        "ecology": "多樣",
+        "ecology": "分解者",
         "cellMode": "單細胞",
         "asex": "分裂生殖",
         "sexual": "有"
@@ -2046,7 +2048,7 @@ window.BIO_DATA={
         "chlorophyll": "無",
         "chloroplast": "無",
         "mito": "無",
-        "ecology": "多樣",
+        "ecology": "分解者",
         "cellMode": "單細胞",
         "asex": "分裂生殖",
         "sexual": "有"
@@ -2136,7 +2138,7 @@ window.BIO_DATA={
         "chlorophyll": "無",
         "chloroplast": "無",
         "mito": "有",
-        "ecology": "多樣",
+        "ecology": "分解者",
         "cellMode": "多細胞",
         "asex": "孢子繁殖",
         "sexual": "有"
@@ -2154,7 +2156,7 @@ window.BIO_DATA={
         "chlorophyll": "無",
         "chloroplast": "無",
         "mito": "有",
-        "ecology": "多樣",
+        "ecology": "分解者",
         "cellMode": "多細胞",
         "asex": "孢子繁殖",
         "sexual": "有"
@@ -2172,9 +2174,9 @@ window.BIO_DATA={
         "chlorophyll": "無",
         "chloroplast": "無",
         "mito": "有",
-        "ecology": "多樣",
+        "ecology": "分解者",
         "cellMode": "單細胞",
-        "asex": "出芽生殖",
+        "asex": "出芽生殖、孢子繁殖",
         "sexual": "有"
       }
     },
@@ -2210,7 +2212,7 @@ window.BIO_DATA={
         "mito": "有",
         "ecology": "消費者、分解者",
         "cellMode": "多細胞",
-        "asex": "多樣",
+        "asex": "出芽生殖、斷裂生殖",
         "sexual": "有"
       }
     },
@@ -2218,18 +2220,18 @@ window.BIO_DATA={
       "group": "非五界",
       "name": "病毒",
       "answers": {
-        "nucleus": "不適用",
+        "nucleus": "無",
         "genetic": "有",
-        "cytoplasm": "不適用",
-        "membrane": "不適用",
-        "wall": "不適用",
-        "chlorophyll": "不適用",
-        "chloroplast": "不適用",
-        "mito": "不適用",
-        "ecology": "不適用",
-        "cellMode": "無細胞構造",
-        "asex": "不適用",
-        "sexual": "不適用"
+        "cytoplasm": "無",
+        "membrane": "無",
+        "wall": "無",
+        "chlorophyll": "無",
+        "chloroplast": "無",
+        "mito": "無",
+        "ecology": "",
+        "cellMode": "",
+        "asex": "",
+        "sexual": "有"
       }
     }
   ],

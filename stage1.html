@@ -243,6 +243,14 @@ tr.row-virus td{min-height:0}
 .stamp-toolbar button{font:inherit;font-size:clamp(9px,1.05vw,14px);font-weight:750;padding:5px 9px;border-radius:18px;border:1px solid #80accd;background:#fff;color:#27618e;cursor:pointer;touch-action:manipulation;white-space:nowrap}
 .stamp-toolbar button.selected{background:#2980b9;color:#fff;border-color:#17608f;box-shadow:0 0 0 2px #c4e5ff}
 @media(max-width:700px){.stamp-toolbar{min-height:30px;max-height:72px;gap:3px;margin-bottom:3px}.stamp-toolbar button{font-size:9px;padding:4px 6px}.stamp-toolbar .palette-name{font-size:10px}}
+
+/* 2.2.5：印章浮在選定的標題正上方，絕不增加表格列高。 */
+.stamp-toolbar,.stamp-toolbar.visible{position:fixed!important;left:0;top:0;right:auto;bottom:auto;z-index:9000;display:none;flex-wrap:wrap;justify-content:center;align-items:center;width:max-content;max-width:min(430px,calc(100vw - 8px));min-height:0;max-height:none;margin:0!important;padding:4px 6px;gap:3px;background:#f1f7fd;box-shadow:0 5px 15px #0003;border:1px solid #9db6cb;border-radius:9px}
+.stamp-toolbar.visible{display:flex!important}
+.stamp-toolbar button{font-size:clamp(10px,1.13vw,14px);padding:5px 7px}
+.stamp-cell.multiple-stamps .cell-content{font-size:clamp(10px,1.07vw,13px)!important;line-height:1.08!important}
+.hardcoded-cell,.hardcoded-cell.masked{background:#17191c!important;color:transparent!important;pointer-events:none!important}
+.hardcoded-cell .cell-content{display:none!important}
 </style>
 </head>
 <body>
@@ -257,7 +265,7 @@ tr.row-virus td{min-height:0}
 
     <div class="controls-row">
         <button id="checkAnswers" class="check-btn">🔍 檢查答案</button>
-        <div class="instructions">👉 點欄名聚焦；生態地位、單／多細胞、常見無性生殖可先選印章，再點格子蓋章。</div>
+        <div class="instructions">👉 點選欄名後，直接選印章並蓋到表格。</div>
     </div>
 
     <div class="stamp-toolbar" id="stampToolbar" role="toolbar" aria-label="印章選擇"></div>
@@ -276,28 +284,41 @@ tr.row-virus td{min-height:0}
 (()=>{'use strict';
 const DB=window.BIO_DATA,rows=DB.studyRows,fields=Object.keys(DB.fields);
 const STAMPS=new Set(['ecology','cellMode','asex']);
-const STAMP_CHOICES={ecology:['生產者','消費者','分解者','多樣','不適用'],cellMode:['單細胞','多細胞','無細胞構造','不在國中討論','不適用'],asex:['分裂生殖','出芽生殖','孢子繁殖','營養器官繁殖','多樣','不在國中討論','不適用']};
-const SPECIAL_STAMPS=new Set(['多樣','不在國中討論','無細胞構造','不適用']);
+const STAMP_CHOICES={ecology:['生產者','消費者','分解者'],cellMode:['單細胞','多細胞'],asex:['分裂生殖','出芽生殖','斷裂生殖','孢子繁殖','營養器官繁殖']};
+const BLACK_CELLS=new Set(['藻類|asex','原生菌物|cellMode']);
 const STORAGE='bio-classification-stage1-2.2.3-progress';
 const tbody=document.getElementById('tableBody'),thead=document.getElementById('tableHead'),palette=document.getElementById('stampToolbar');
 let values={},focus=null;const selected={};
-function showPalette(f){palette.replaceChildren();if(!STAMPS.has(f)){palette.classList.remove('visible');requestAnimationFrame(equalizeRows);return;}palette.classList.add('visible');const name=document.createElement('span');name.className='palette-name';name.textContent='「'+DB.fields[f].replace('\n','')+'」印章：';palette.append(name);STAMP_CHOICES[f].forEach(v=>{const btn=document.createElement('button');btn.type='button';btn.textContent=v;btn.classList.toggle('selected',selected[f]===v);btn.setAttribute('aria-pressed',String(selected[f]===v));btn.onclick=()=>{selected[f]=v;showPalette(f)};palette.append(btn)});requestAnimationFrame(equalizeRows)}
-try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'{}');Object.entries(saved).forEach(([key,val])=>{const m=/^(\d+)\|([a-zA-Z]+)$/.exec(key);if(m&&rows[Number(m[1])]&&(STAMPS.has(m[2])?String(val).split('、').every(v=>STAMP_CHOICES[m[2]].includes(v)):DB.options[m[2]]?.includes(val)))values[key]=val})}catch{}
+function positionPalette(){
+ if(!focus||!STAMPS.has(focus)||!palette.classList.contains('visible'))return;
+ const th=thead.querySelector(`[data-col="${focus}"]`);if(!th)return;
+ const r=th.getBoundingClientRect(),rect=palette.getBoundingClientRect();
+ // Float immediately above the selected column, never consume a new table row.
+ const w=Math.min(rect.width,innerWidth-8),left=Math.min(Math.max(r.left+r.width/2-w/2,4),innerWidth-w-4);
+ palette.style.left=left+'px';palette.style.top=Math.max(2,r.top-rect.height-4)+'px';
+}
+function showPalette(f){palette.replaceChildren();if(!STAMPS.has(f)){palette.classList.remove('visible');return}
+ STAMP_CHOICES[f].forEach(v=>{const btn=document.createElement('button');btn.type='button';btn.textContent=v;
+ btn.classList.toggle('selected',selected[f]===v);btn.setAttribute('aria-pressed',String(selected[f]===v));
+ btn.onclick=()=>{selected[f]=v;showPalette(f)};palette.append(btn)});
+ palette.classList.add('visible');positionPalette();
+}
+try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'{}');Object.entries(saved).forEach(([key,val])=>{const m=/^(\d+)\|([a-zA-Z]+)$/.exec(key);if(m&&rows[Number(m[1])]&&(STAMPS.has(m[2])?String(val).split(/[、,，]/).every(v=>STAMP_CHOICES[m[2]].includes(v)):DB.options[m[2]]?.includes(val)))values[key]=val})}catch{}
 const key=(i,f)=>i+'|'+f;
 function save(){try{localStorage.setItem(STORAGE,JSON.stringify(values))}catch{}}
 function show(v){if(v==='有')return 'Ｏ';if(v==='無')return '×';if(v==='部分有')return '部分';return v||''}
+function normalizeStamps(v){return String(v||'').split(/[、,，]/).map(x=>x.trim()).filter(Boolean).sort().join('、')}
 function focusColumn(f){focus=focus===f?null:f;showPalette(focus);document.querySelectorAll('[data-col]').forEach(el=>{
  const on=!!focus&&el.dataset.col===focus;
  el.classList.toggle('active-col',on);el.classList.toggle('masked',!!focus&&!on);
- if(el.tagName==='TD'&&!el.classList.contains('hardcoded-cell'))el.classList.toggle('no-pointer',!on)
+ if(el.tagName==='TD')el.classList.toggle('no-pointer',!on||el.classList.contains('hardcoded-cell'))
  });}
-function updateCell(td,i,f){const v=values[key(i,f)];const el=td.querySelector('.cell-content');el.textContent=STAMPS.has(f)?show(v).replaceAll('、','\n'):show(v);td.classList.remove('incorrect-cell','correct-cell');td.style.background='';td.style.color=STAMPS.has(f)?'#2476a5':(v==='有'?'#de5846':'#516171');}
+function updateCell(td,i,f){const v=values[key(i,f)];const el=td.querySelector('.cell-content');el.textContent=STAMPS.has(f)?show(v).replaceAll('、','\n'):show(v);td.classList.toggle('multiple-stamps',STAMPS.has(f)&&normalizeStamps(v).split('、').filter(Boolean).length>1);td.classList.remove('incorrect-cell','correct-cell');td.style.background='';td.style.color=STAMPS.has(f)?'#2476a5':(v==='有'?'#de5846':'#516171');}
 function setValue(td,i,f){if(focus!==f)return;
  const k=key(i,f),options=DB.options[f],old=values[k]||'';
  if(STAMPS.has(f)){const chosen=selected[f];if(!chosen)return;let parts=old?old.split('、'):[];
  if(parts.includes(chosen))parts=parts.filter(x=>x!==chosen);
- else if(SPECIAL_STAMPS.has(chosen))parts=[chosen];
- else{parts=parts.filter(x=>!SPECIAL_STAMPS.has(x));parts.push(chosen)}
+ else parts.push(chosen)
  values[k]=parts.join('、');}
  else{const list=['',...options];values[k]=list[(list.indexOf(old)+1)%list.length]}
  if(!values[k])delete values[k];updateCell(td,i,f);save();}
@@ -313,9 +334,9 @@ function build(){
  if(!done[r.group]){done[r.group]=true;const c=document.createElement('td');c.className='kingdom-cell';c.rowSpan=count[r.group];const label=document.createElement('div');label.className='kingdom-text';label.textContent=r.group==='非五界'?'病毒':r.group.replace('生物界','').replace('界','');c.append(label);row.append(c)}
  const sub=document.createElement('td');sub.className='subgroup-cell';sub.textContent=r.name;row.append(sub);
  fields.forEach(f=>{const cell=document.createElement('td');cell.dataset.col=f;cell.dataset.row=i;const caption=document.createElement('div');caption.className='cell-content';
- const notCellular=false; // 病毒所有欄位由學生判斷，不預先封鎖
+ const notCellular=BLACK_CELLS.has(r.name+'|'+f); // 恢復原版藻類無性生殖／原生菌物細胞型態免答黑格
  cell.className=notCellular?'hardcoded-cell':'stamp-cell no-pointer';cell.append(caption);
- if(notCellular)caption.textContent='—';else{updateCell(cell,i,f);cell.onclick=()=>setValue(cell,i,f)}row.append(cell)});
+ if(!notCellular){updateCell(cell,i,f);cell.onclick=()=>setValue(cell,i,f)}row.append(cell)});
  tbody.append(row)})
  requestAnimationFrame(equalizeRows);
 }
@@ -328,9 +349,9 @@ function equalizeRows(){// Preserve original table + rowspan, but force 12 match
 function checkAnswers(){let bad=0,blank=0;tbody.querySelectorAll('td[data-col]:not(.hardcoded-cell)').forEach(td=>{
  const i=Number(td.dataset.row),f=td.dataset.col,v=values[key(i,f)]||'',expected=rows[i].answers[f];
  td.classList.remove('incorrect-cell','correct-cell');
- if(!v){blank++;td.style.background='#fff2d8'}else if((STAMPS.has(f)?[...v.split('、')].sort().join('、')!==[...expected.split('、')].sort().join('、'):v!==expected)){bad++;td.style.background='#ffe0dc'}else td.style.background='#e6f7e8';
+ if(!v&&expected!==''){blank++;td.style.background='#fff2d8'}else if((STAMPS.has(f)?normalizeStamps(v)!==normalizeStamps(expected):v!==expected)){bad++;td.style.background='#ffe0dc'}else td.style.background='#e6f7e8';
  });alert(!bad&&!blank?'全部正確！五界特徵複習完成！':`還有 ${blank} 格尚未填寫、${bad} 格需要修正。`)}
 document.getElementById('checkAnswers').addEventListener('click',checkAnswers);
-window.addEventListener('resize',()=>requestAnimationFrame(equalizeRows));build();
+window.addEventListener('resize',()=>{requestAnimationFrame(equalizeRows);requestAnimationFrame(positionPalette)});build();
 })();
 </script></body></html>

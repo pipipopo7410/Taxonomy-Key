@@ -348,7 +348,7 @@ function geoMarkup(){
   }
  }else if(n.group.length>1){const start=pos.x+GEO.slotW;branches.push(svgLine(start,pos.y,GEO.cardX-12,pos.y,'guide',n.id,'guide'))}
  }visit(root);
- const boxes=groups.map(g=>`<div class="geo-cluster ${g.node.group.length===1?'single':''}" data-group="${g.node.id}" style="top:${g.y+3}px;height:${g.h-6}px"></div>`);
+ const boxes=groups.map(g=>{const initial=groups.length===1&&g.node.id===root.id;const pad=initial?28:3;return `<div class="geo-cluster ${g.node.group.length===1?'single':''} ${initial?'initial':''}" data-group="${g.node.id}" style="top:${g.y-pad}px;height:${g.h+pad*2}px"></div>`});
  const cards=items.map(b=>{const done=groups.some(g=>g.node.group.length===1&&g.node.group[0].id===b.id);return `<div class="geo-bio ${done?'done':''}" data-bio="${b.id}" data-yi="${bioY[b.id]}" style="top:${bioY[b.id]-GEO.cardH/2}px">${b.name}</div>`});
  return `<svg class="geo-lines" viewBox="0 0 1240 620" aria-hidden="true">${branches.join('')}</svg>${boxes.join('')}${slots.join('')}${labels.join('')}${cards.join('')}`;
 }
@@ -382,9 +382,9 @@ async function place(id,k){
  animatedNode=null;animationLocked=false;render();complete=completeCheck();showStatus(complete?'分類完成！你使用的分類順序是可行的。':'成功分成兩群，可繼續選擇分類特徵。');saveGame();
 }
 let gesture=null;function startDrag(ev){if(ev.button!==undefined&&ev.button!==0)return;const el=ev.currentTarget;gesture={el,trait:el.dataset.trait,x:ev.clientX,y:ev.clientY,moving:false,ghost:null};try{el.setPointerCapture(ev.pointerId)}catch{}el.addEventListener('pointermove',moveDrag);el.addEventListener('pointerup',endDrag,{once:true});el.addEventListener('pointercancel',cancelDrag,{once:true})}
-function moveDrag(e){if(!gesture)return;const g=gesture;if(!g.moving&&Math.hypot(e.clientX-g.x,e.clientY-g.y)>7){g.moving=true;g.ghost=g.el.cloneNode(true);g.ghost.classList.add('ghost');document.body.append(g.ghost)}if(g.moving){g.ghost.style.left=(e.clientX-g.el.offsetWidth/2)+'px';g.ghost.style.top=(e.clientY-g.el.offsetHeight/2)+'px';document.querySelectorAll('.slot').forEach(s=>s.classList.remove('hover'));const s=document.elementFromPoint(e.clientX,e.clientY)?.closest('.slot:not([disabled])');if(s)s.classList.add('hover')}}
-function cleanup(){if(!gesture)return;gesture.el.removeEventListener('pointermove',moveDrag);gesture.ghost?.remove();document.querySelectorAll('.slot').forEach(x=>x.classList.remove('hover'));gesture=null}
-function endDrag(e){if(!gesture)return;let g=gesture;if(g.moving){const slot=document.elementFromPoint(e.clientX,e.clientY)?.closest('.slot:not([disabled])'),k=g.trait;cleanup();if(slot)place(slot.dataset.node,k)}else{const k=g.trait;cleanup();chosenTag=chosenTag===k?null:k;render();showStatus(chosenTag?`已選「${DB.traits[chosenTag]}」，請點選虛線框。`:'已取消選擇。');saveGame()}}
+function moveDrag(e){if(!gesture)return;const g=gesture;if(!g.moving&&Math.hypot(e.clientX-g.x,e.clientY-g.y)>7){g.moving=true;g.ghost=g.el.cloneNode(true);g.ghost.classList.add('ghost');document.body.append(g.ghost)}if(g.moving){g.ghost.style.left=(e.clientX-g.el.offsetWidth/2)+'px';g.ghost.style.top=(e.clientY-g.el.offsetHeight/2)+'px';document.querySelectorAll('.geo-slot').forEach(s=>s.classList.remove('hover'));const s=document.elementFromPoint(e.clientX,e.clientY)?.closest('.geo-slot:not([disabled])');if(s)s.classList.add('hover')}}
+function cleanup(){if(!gesture)return;gesture.el.removeEventListener('pointermove',moveDrag);gesture.ghost?.remove();document.querySelectorAll('.geo-slot').forEach(x=>x.classList.remove('hover'));gesture=null}
+function endDrag(e){if(!gesture)return;let g=gesture;if(g.moving){const slot=document.elementFromPoint(e.clientX,e.clientY)?.closest('.geo-slot:not([disabled])'),k=g.trait;cleanup();if(slot)place(slot.dataset.node,k)}else{const k=g.trait;cleanup();chosenTag=chosenTag===k?null:k;render();showStatus(chosenTag?`已選「${DB.traits[chosenTag]}」，請點選虛線框。`:'已取消選擇。');saveGame()}}
 function cancelDrag(){cleanup()}
 [topicEl,kindEl,modeEl,countEl].forEach(x=>x.addEventListener('change',start));document.getElementById('reset').onclick=start;
 document.getElementById('undo').onclick=()=>{if(!moves.length||animationLocked)return;cancelAnimatedDrop();moves.pop();chosenTag=null;rebuildFromHistory();render();saveGame();showStatus('已撤銷上一個分類步驟，可改用其他合理特徵。')};
