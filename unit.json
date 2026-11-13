@@ -1,7 +1,7 @@
 {
   "id": "classification",
   "name": "分類特訓",
-  "version": "2.1.0-integrated-beta",
+  "version": "2.2.0-ui-restored",
   "entry": "index.html",
   "offlineFiles": [
     "index.html",
@@ -13,28 +13,6 @@
     "manifest.webmanifest",
     "unit.json",
     "icons/icon-192.png",
-    "icons/icon-512.png",
-    "assets/777.webp",
-    "assets/888.webp",
-    "assets/999.webp",
-    "assets/Q1-2.webp",
-    "assets/Q1.webp",
-    "assets/Q10-2.webp",
-    "assets/Q10.webp",
-    "assets/Q2-2.webp",
-    "assets/Q2.webp",
-    "assets/Q3-2.webp",
-    "assets/Q3.webp",
-    "assets/Q4-2.webp",
-    "assets/Q4.webp",
-    "assets/Q5-2.webp",
-    "assets/Q5.webp",
-    "assets/Q6-2.webp",
-    "assets/Q6.webp",
-    "assets/Q7-2.webp",
-    "assets/Q7.webp",
-    "assets/Q8.webp",
-    "assets/Q9-2.webp",
-    "assets/Q9.webp"
+    "icons/icon-512.png"
   ]
 }

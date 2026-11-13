@@ -1,23 +1,212 @@
-<!doctype html>
-<html lang="zh-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>分類｜小老師訂正</title>
-<style>
-:root{--ink:#283e50;--accent:#226b8f;--paper:#fffdfa;--line:#e0d6c6}*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,'Noto Sans TC',sans-serif;background:#edf2f6;color:var(--ink)}main{min-height:100dvh;display:flex;flex-direction:column;padding:clamp(9px,1.5vw,18px);gap:11px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.heading h1{font-size:clamp(18px,2.1vw,24px);margin:0 0 4px}.heading p{margin:0;color:#627485;font-size:clamp(12px,1.2vw,14px)}.actions{display:flex;gap:8px;flex-wrap:wrap}button{font:inherit;cursor:pointer;font-weight:750;min-height:40px;border-radius:9px;border:0;background:#267968;color:white;padding:8px 15px}button.secondary{background:#355f86}button.light{background:#e6edf2;color:#31526a;border:1px solid #cad8e1}.paper{background:var(--paper);border:1px solid #e2d7c7;border-radius:17px;padding:clamp(12px,2.1vw,22px);box-shadow:0 9px 20px #20334014;flex:1;min-height:0}.name{font-weight:800;font-size:clamp(15px,1.5vw,19px);padding:0 0 10px;border-bottom:2px dashed #cbbba3;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.name small{font-size:12px;color:#718394;font-weight:650}.sheet{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:15px}.cell{border:1px solid #e3d9c7;background:white;border-radius:11px;padding:10px;min-height:84px;display:flex;flex-direction:column;justify-content:space-between;position:relative;gap:7px;transition:background .18s,border-color .18s}.cell .field{color:#627382;font-size:12px;font-weight:750}.cell select{width:100%;border:1px solid #c9d8e0;background:#f5f9fc;border-radius:7px;min-height:37px;padding:4px;font:inherit;font-size:clamp(12px,1.2vw,15px);font-weight:750;color:#25415a;cursor:pointer}.cell.changed:after{content:'已訂正';position:absolute;top:6px;right:8px;color:#317f9a;font-size:10px;font-weight:700}.cell.changed select{background:#e8f5fa;border-color:#6aa5ba}.cell.good{border-color:#57a67a;background:#eaf8ef}.cell.bad{border-color:#db7773;background:#fff0ef;animation:penMark .32s ease-out}.cell.bad:before{content:'✕';position:absolute;right:8px;bottom:4px;pointer-events:none;font-weight:900;font-size:22px;color:#dc5f57;opacity:.85;transform:rotate(-16deg)}@keyframes penMark{from{box-shadow:inset 0 0 0 0 #dc777744}to{box-shadow:inset 0 0 0 3px #dc777700}}.result{min-height:27px;font-weight:750;font-size:14px;color:#355f78}.result.error{color:#a63d39}.progress{font-size:12px;color:#55748a;font-weight:650}.bottom{color:#778895;font-size:12px;line-height:1.5}.cell select:focus-visible,button:focus-visible{outline:3px solid #ffcc6e;outline-offset:2px}@media(max-width:900px){.sheet{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:520px){main{gap:7px}.sheet{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.cell{min-height:76px;padding:8px}.paper{padding:10px}.name{gap:3px}.actions{width:100%}.actions button{flex:1;padding:7px 8px}}
-</style></head>
-<body><main><div class="top"><div class="heading"><h1>第二關｜小老師訂正</h1><p>找出不合理的地方，把資料改成正確答案；原本正確的不用動。</p></div><div class="actions"><button class="light" id="restore" title="將本張考卷恢復成原始內容">還原原卷</button><button class="secondary" id="next">換下一張</button><button id="check">批改完成</button></div></div><section class="paper" aria-label="待批改考卷"><div class="name"><span id="student">載入中…</span><small id="progress">已訂正 0 格</small></div><div class="sheet" id="sheet"></div></section><div id="result" class="result" aria-live="polite"></div><div class="bottom">批改時會標示仍有問題的格子；不會直接顯示正確答案。返回其他分頁後仍能繼續這張考卷。</div></main>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>國中生物五界分類特訓基地 - 第二階段</title>
+    
+    <style>
+        :root {
+            --primary-color: #c0392b; 
+            --bg-color: #2c3e50; 
+        }
+
+        html, body {
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 { color: white; margin: 15px 0 5px 0; font-size: clamp(18px, 3vh, 24px); }
+        .instructions { color: #bdc3c7; margin-bottom: 15px; font-size: clamp(12px, 1.8vh, 16px); }
+
+        .paper-container {
+            width: 95%;
+            max-width: 1400px;
+            background-color: #fdfaf6;
+            background-image: linear-gradient(transparent 95%, #e1e8ed 95%);
+            background-size: 100% 6vh; 
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-family: 'Klee One', cursive; 
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .student-name {
+            font-size: clamp(16px, 2.5vh, 22px);
+            margin-bottom: 15px;
+            border-bottom: 2px dashed #bdc3c7;
+            padding-bottom: 5px;
+            color: #34495e;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            table-layout: fixed;
+        }
+
+        th, td {
+            padding: 2px;
+            vertical-align: middle;
+            font-size: clamp(12px, 2vh, 18px);
+            height: 6vh;
+            border-bottom: 1px solid #dcdde1; 
+            border-right: 1px dashed #ecf0f1;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.2;
+        }
+        th:last-child, td:last-child { border-right: none; }
+        
+        th:nth-child(1) { width: 5%; } 
+        th:nth-child(2) { width: 8%; }
+
+        th { color: #7f8c8d; font-family: "Helvetica Neue", Arial, sans-serif; font-weight: bold; }
+
+        td.clickable { cursor: pointer; user-select: none; }
+        td.clickable:hover { background-color: rgba(241, 196, 15, 0.1); }
+
+        /* --- SVG 兩段式紅筆動畫 CSS --- */
+        .red-pen-svg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; 
+            z-index: 10;
+        }
+        
+        /* 1. 畫外圍圈圈 */
+        .red-pen-circle {
+            fill: none;
+            stroke: #e74c3c;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 250; 
+            stroke-dashoffset: 250;
+            animation: drawPen 0.3s forwards ease-out;
+        }
+
+        /* 2. 畫裡面的叉叉 (共用基本樣式) */
+        .red-pen-cross {
+            fill: none;
+            stroke: #e74c3c;
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            stroke-dasharray: 80; 
+            stroke-dashoffset: 80;
+        }
+
+        /* 叉叉第一筆：等圈圈畫完 (0.3s) 才開始 */
+        .cross-line-1 {
+            animation: drawPen 0.15s forwards ease-out;
+            animation-delay: 0.3s;
+        }
+
+        /* 叉叉第二筆：等第一筆畫完 (0.3+0.15 = 0.45s) 才開始 */
+        .cross-line-2 {
+            animation: drawPen 0.15s forwards ease-out;
+            animation-delay: 0.45s;
+        }
+
+        @keyframes drawPen {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .btn-group { margin-top: 25px; display: flex; gap: 15px; }
+        button {
+            background-color: var(--primary-color); color: white; border: none; padding: 12px 30px;
+            font-size: clamp(14px, 2.5vh, 20px); border-radius: 8px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s;
+        }
+        button:hover { background-color: #c0392b; transform: translateY(-2px); }
+        
+        .btn-next { background-color: #2980b9; }
+        .btn-next:hover { background-color: #2471a3; }
+    /* 2.2: restore original notebook, no page/inner scrolling */
+*{box-sizing:border-box}html,body{height:100%!important;width:100%;overflow:hidden!important;overscroll-behavior:none}
+body{height:100dvh!important;padding:0 8px}
+h2{margin:8px 0 3px;font-size:clamp(15px,2.5vh,24px);flex-shrink:0}.instructions{margin:0 0 8px;text-align:center;font-size:clamp(10px,1.3vw,16px);flex-shrink:0}
+.paper-container{width:100%;max-width:none;flex:1;min-height:0;overflow:hidden;padding:clamp(6px,1vw,16px);display:flex;flex-direction:column;justify-content:flex-start}
+.student-name{flex-shrink:0;font-size:clamp(12px,1.75vw,20px);margin-bottom:8px;padding-bottom:4px}
+table{flex:1;min-height:0;height:auto;table-layout:fixed}thead{height:40%}tbody{height:60%}th,td{font-size:clamp(8px,1.14vw,17px);height:auto;line-height:1.15;padding:2px 1px;overflow:hidden}
+th:nth-child(1),th:nth-child(2){width:8%}th{word-break:break-all}
+td select{width:100%;height:100%;min-height:36px;border:0;background:transparent;font:inherit;font-size:clamp(8px,1.25vw,18px);font-weight:700;color:#2c3e50;text-align:center;appearance:none;cursor:pointer;padding:1px}
+td.changed{background:#fff3dc!important}td.changed:after{content:'✎';position:absolute;top:0;right:1px;color:#c0392b;font-size:11px;pointer-events:none}
+td.good{background:#e7f8eb!important}td.bad{background:#ffe5e3!important}td.bad:after{content:'✕';position:absolute;top:-4px;right:0;color:#bf342d;font-size:20px;pointer-events:none}
+.btn-group{flex-shrink:0;margin:8px 0 8px;gap:10px;align-items:center;justify-content:center}
+.btn-group button{padding:8px 15px;font-size:clamp(11px,1.4vw,17px)}
+@media(max-width:580px){.student-name{margin-bottom:3px}.btn-group{gap:4px}.btn-group button{padding:7px 8px}.paper-container{padding:6px}th,td{font-size:8px}}
+
+.paper-container{flex:0 0 auto!important;height:auto!important;max-height:calc(100dvh - 150px);min-height:0;overflow:hidden;padding:clamp(9px,1.8vw,19px)}
+.paper-container table{display:table;flex:none;height:auto!important;min-height:0}
+.paper-container thead,.paper-container tbody{height:auto!important}
+.paper-container th,.paper-container td{height:clamp(46px,6dvh,61px);min-height:0}
+.paper-container .student-name{margin-bottom:12px}
+.btn-group{margin-top:14px}
+@media(max-width:600px){.paper-container{padding:8px}.paper-container .student-name{margin-bottom:4px}.paper-container th,.paper-container td{height:47px}.btn-group{margin-top:10px}}
+
+#examRow td.clickable{position:relative;cursor:pointer}
+#examRow .answer-value{display:flex;align-items:center;justify-content:center;min-height:36px;height:100%;width:100%;font-size:clamp(8px,1.1vw,15px);font-weight:750;line-height:1.05;overflow-wrap:anywhere;text-align:center;padding:2px}
+#examRow td select{position:absolute;inset:0;opacity:0;width:100%;height:100%;min-height:0;cursor:pointer}
+#examRow td:focus-within{outline:2px solid #d35400;outline-offset:-2px}
+</style>
+</head>
+<body>
+
+    <h2>第二階段：小老師閱卷任務</h2>
+    <p class="instructions">👉 操作說明：檢查同學的筆記；有錯就點該格直接訂正，正確的格子不必改。</p>
+
+    <div class="paper-container">
+        <div class="student-name" id="studentName">正在隨機抽取學生考卷...</div>
+        <table id="examTable">
+            <thead>
+                <tr>
+                    <th>五界</th>
+                    <th>小分類</th>
+                    <th>細胞核</th>
+                    <th>遺傳物質</th>
+                    <th>細胞質</th>
+                    <th>細胞膜</th>
+                    <th>細胞壁</th>
+                    <th>葉綠素</th>
+                    <th>葉綠體</th><th>粒線體</th>
+                    <th>生態地位</th>
+                    <th>單/多細胞</th>
+                    <th>無性生殖</th>
+                    <th>有性生殖</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="examRow">
+                    </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="btn-group">
+        <button id="submitGrade">💯 批改完成</button><button id="restoreQuiz" type="button">↶ 還原原卷</button>
+        <button id="nextQuiz" class="btn-next">🔄 換下一張考卷</button>
+    </div>
+
 <script src="data.js"></script><script>
-(()=>{'use strict';
-const DB=window.BIO_DATA,rows=DB.studyRows,fields=Object.keys(DB.fields),KEY='bio-classification-v2-stage2-session';
-const sheet=document.querySelector('#sheet'),result=document.querySelector('#result'),student=document.querySelector('#student'),progress=document.querySelector('#progress');let state=null;
-function sample(a){return a[Math.floor(Math.random()*a.length)]}
-function shuffle(a){const arr=[...a];for(let i=arr.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
-function safeSave(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
-function fresh(){const candidates=rows.map((_,i)=>i).filter(i=>!state||i!==state.row),row=sample(candidates.length?candidates:rows.map((_,i)=>i));const target=rows[row];const num=2+Math.floor(Math.random()*3);const corrupted=shuffle(fields.filter(f=>DB.options[f].filter(x=>x!==target.answers[f]).length>0)).slice(0,num);const initial={},answers={};
- for(const f of fields){let v=target.answers[f];if(corrupted.includes(f)){const alternate=DB.options[f].filter(x=>x!==v);v=sample(alternate)}initial[f]=v;answers[f]=v}
- state={row,initial,answers,checked:false,version:1};safeSave();render()}
-function load(){try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved&&saved.version===1&&rows[saved.row]&&fields.every(f=>DB.options[f].includes(saved.initial?.[f])&&DB.options[f].includes(saved.answers?.[f]))){state=saved;return}}catch(e){}state=null}
-function progressUI(){const changed=fields.filter(f=>state.answers[f]!==state.initial[f]).length;progress.textContent=`已訂正 ${changed} 格 · 全卷 ${fields.length} 格`}
-function render(){sheet.replaceChildren();const row=rows[state.row];student.textContent=`📝 ${row.name}｜糊塗同學的筆記`;fields.forEach(f=>{const cell=document.createElement('div');cell.className='cell';cell.dataset.field=f;const label=document.createElement('span');label.className='field';label.textContent=DB.fields[f];const select=document.createElement('select');select.setAttribute('aria-label',`${row.name}：${DB.fields[f]}`);DB.options[f].forEach(val=>{const o=document.createElement('option');o.value=val;o.textContent=val;select.append(o)});select.value=state.answers[f];select.addEventListener('change',()=>{state.answers[f]=select.value;state.checked=false;sheet.querySelectorAll('.cell').forEach(c=>c.classList.remove('good','bad'));progressUI();result.textContent='';result.classList.remove('error');cell.classList.toggle('changed',state.answers[f]!==state.initial[f]);safeSave()});cell.classList.toggle('changed',state.answers[f]!==state.initial[f]);cell.append(label,select);sheet.append(cell)});if(state.checked)showCheck();else{result.textContent='';result.classList.remove('error')}progressUI()}
-function showCheck(){const expected=rows[state.row].answers;let errors=0;sheet.querySelectorAll('.cell').forEach(c=>{const key=c.dataset.field,ok=state.answers[key]===expected[key];c.classList.toggle('good',ok);c.classList.toggle('bad',!ok);if(!ok)errors++});result.textContent=errors?`還有 ${errors} 格需要重新確認，請留意紅色標記。`:'批改成功！這張考卷的資料全部正確。';result.classList.toggle('error',errors>0);state.checked=true;safeSave()}
-document.querySelector('#check').addEventListener('click',showCheck);document.querySelector('#next').addEventListener('click',fresh);document.querySelector('#restore').addEventListener('click',()=>{if(!confirm('將這張考卷還原成同學原本寫的內容？'))return;state.answers={...state.initial};state.checked=false;safeSave();render()});load();if(state)render();else fresh();
-})();
-</script></body></html>
+(()=>{'use strict';const DB=window.BIO_DATA,rows=DB.studyRows,fields=Object.keys(DB.fields),KEY='bio-classification-v2-stage2-session';let state=null;
+const tbody=document.querySelector('#examRow'),nameEl=document.querySelector('#studentName');
+const sample=a=>a[Math.floor(Math.random()*a.length)];function shuffle(a){let o=[...a];for(let i=o.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[o[i],o[j]]=[o[j],o[i]]}return o}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function fresh(){const choices=rows.map((_,i)=>i).filter(i=>!state||i!==state.row);const row=sample(choices.length?choices:rows.map((_,i)=>i));const target=rows[row],n=2+Math.floor(Math.random()*3),flipped=shuffle(fields.filter(f=>DB.options[f].some(x=>x!==target.answers[f]))).slice(0,n),initial={},answers={};fields.forEach(f=>{let v=target.answers[f];if(flipped.includes(f))v=sample(DB.options[f].filter(x=>x!==v));initial[f]=v;answers[f]=v});state={row,initial,answers,checked:false,version:1};save();render()}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.version===1&&rows[s.row]&&fields.every(f=>DB.options[f].includes(s.initial?.[f])&&DB.options[f].includes(s.answers?.[f]))){state=s}}catch(e){}}
+function render(){tbody.replaceChildren();const r=rows[state.row];nameEl.textContent=`📝 糊塗同學的隨堂筆記：【${r.name}】`;
+const first=document.createElement('td');first.textContent=r.group.replace('生物界','').replace('界','');tbody.append(first);const second=document.createElement('td');second.textContent=r.name;tbody.append(second);
+fields.forEach(f=>{const td=document.createElement('td');td.dataset.field=f;td.className='clickable';const sel=document.createElement('select');sel.setAttribute('aria-label',r.name+' '+DB.fields[f]);DB.options[f].forEach(val=>{const o=document.createElement('option');o.textContent=val;o.value=val;sel.append(o)});sel.value=state.answers[f];sel.addEventListener('change',()=>{state.answers[f]=sel.value;state.checked=false;td.classList.toggle('changed',state.answers[f]!==state.initial[f]);tbody.querySelectorAll('td').forEach(c=>c.classList.remove('good','bad'));save()});td.classList.toggle('changed',state.answers[f]!==state.initial[f]);const shown=document.createElement('span');shown.className='answer-value';shown.textContent=sel.value;sel.addEventListener('change',()=>{shown.textContent=sel.value});td.append(shown,sel);tbody.append(td)});if(state.checked)doCheck(false)}
+function doCheck(show=true){let errors=0;fields.forEach(f=>{const td=tbody.querySelector(`td[data-field="${f}"]`);const ok=state.answers[f]===rows[state.row].answers[f];td.classList.toggle('good',ok);td.classList.toggle('bad',!ok);if(!ok)errors++});state.checked=true;save();if(show)alert(errors?`還有 ${errors} 格需要修正，錯誤已用紅筆標記。`:'💯 完美訂正！整張考卷都正確了！')}
+document.querySelector('#submitGrade').onclick=()=>doCheck();document.querySelector('#nextQuiz').onclick=fresh;document.querySelector('#restoreQuiz').onclick=()=>{state.answers={...state.initial};state.checked=false;save();render()};load();if(state)render();else fresh();
+})();</script></body></html>

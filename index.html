@@ -1,5 +1,137 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#243b53"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/icon-192.png"><title>生物分類特訓｜2.1 四頁整合測試版</title><style>
-*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:system-ui,'Noto Sans TC',sans-serif;background:#192637}body{display:flex;flex-direction:column;overflow:hidden}.tabs{display:flex;align-items:center;gap:6px;padding:9px 12px;background:#192637;min-height:58px;overflow-x:auto;scrollbar-width:none}.tab{flex:1;white-space:nowrap;min-width:max-content;padding:10px 16px;border:1px solid #405669;background:#273a4d;color:#d8e6ed;border-radius:12px 12px 7px 7px;font-size:clamp(12px,1.6vw,16px);font-weight:750;cursor:pointer}.tab.active{background:#e6f4f8;color:#194868;border-color:#a8cbdc}.view{flex:1;min-height:0;background:#f4f8f9}.frame{width:100%;height:100%;border:0;background:#f4f8f9}.tab:focus-visible{outline:3px solid #f7c96b}
-</style></head><body><nav class="tabs" aria-label="分類複習分頁"><button class="tab active" data-stage="stage1.html">① 整體複習</button><button class="tab" data-stage="stage2.html">② 小老師訂正</button><button class="tab" data-stage="stage3.html">③ 偵探解謎</button><button class="tab" data-stage="stage4.html">④ 檢索表練習</button></nav><main class="view"><iframe class="frame" id="stageFrame" title="分類互動練習" src="stage1.html"></iframe></main><script>
-const frame=document.querySelector('#stageFrame');document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(b.classList.contains('active'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));frame.src=b.dataset.stage});if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
-</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>國中生物五界分類特訓基地</title>
+<link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <style>
+        :root {
+            --bg-color: #1a252f;
+            --tab-bg: #0d151d;
+            --tab-border: #2c3e50;
+            --tab-active-bg: #243342;
+            --tab-active-border: #3498db;
+            --tab-height: 55px; 
+        }
+
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; 
+            height: 100%;
+            height: 100dvh; 
+            background-color: var(--bg-color);
+            overflow: hidden; 
+            position: fixed; 
+            touch-action: none; 
+            font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-nav {
+            flex: 0 0 var(--tab-height);
+            overflow: hidden;
+            height: var(--tab-height);
+            background-color: var(--tab-bg);
+            border-bottom: 2px solid var(--tab-border);
+            display: flex;
+            align-items: flex-end;
+            padding: 0 20px;
+            box-sizing: border-box;
+            gap: 6px;
+        }
+
+        .tab-btn {
+            padding: 11px clamp(7px, 1.7vw, 24px);
+            background: var(--bg-color);
+            border: 1px solid #34495e;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            color: #7f8c8d;
+            font-size: clamp(10px,1.18vw,16px); 
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+
+        .tab-btn:hover {
+            background: #1e2b38;
+            color: #bdc3c7;
+        }
+
+        .tab-btn.active {
+            background: var(--tab-active-bg);
+            color: var(--tab-active-border);
+            border-color: var(--tab-active-border);
+            box-shadow: 0 -2px 10px rgba(52, 152, 219, 0.2);
+        }
+
+        .iframe-wrapper {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch; 
+        }
+
+        .content-frame {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; min-width: 0; 
+            height: 100%;
+            border: none;
+            background-color: var(--bg-color);
+        }
+    @media(max-width:570px){:root{--tab-height:48px}.main-nav{padding:0 4px;gap:2px}.tab-btn{font-size:9px;padding:10px 3px;flex:1}}
+html,body,.iframe-wrapper{overscroll-behavior:none;overflow:hidden!important}body{touch-action:pan-x pan-y}.iframe-wrapper{min-height:0}
+
+.orientation-hint{display:none;position:fixed;left:50%;top:55px;transform:translateX(-50%);max-width:96%;width:max-content;z-index:1000;padding:9px 11px;background:#fff8e7;border:1px solid #e6c67f;border-radius:9px;box-shadow:0 3px 14px #0004;font-size:12px;color:#604a28;align-items:center;gap:10px}
+.orientation-hint button{border:0;border-radius:6px;background:#b77d24;color:white;padding:6px 8px;font-size:12px;white-space:nowrap}
+@media(orientation:portrait){.orientation-hint:not(.dismissed){display:flex}}
+</style>
+</head>
+<body><div class="orientation-hint" id="orientationHint" role="status">建議橫向操作，畫面更清楚。<button type="button" id="dismissOrientation">知道了</button></div>
+
+    <div class="main-nav" id="mainNav">
+        <button class="tab-btn active" data-src="stage1.html">第一階段：整體複習</button>
+        <button class="tab-btn" data-src="stage2.html">第二階段：單一生物特徵</button>
+        <button class="tab-btn" data-src="stage3.html">第三階段：分類判斷</button>
+        <button class="tab-btn" data-src="stage4.html">第四階段：檢索表練習</button>
+    </div>
+
+    <div class="iframe-wrapper">
+        <iframe id="mainFrame" class="content-frame" src="stage1.html" title="特訓基地內容區"></iframe>
+    </div>
+
+<script>
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const mainFrame = document.getElementById('mainFrame');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('touchstart', function(e) {
+            e.preventDefault(); 
+            activateTab(this);
+        }, {passive: false});
+
+        btn.addEventListener('click', function() {
+            activateTab(this);
+        });
+    });
+
+    function activateTab(clickedBtn) {
+        if(clickedBtn.classList.contains('active')) return;
+        tabBtns.forEach(b => b.classList.remove('active'));
+        clickedBtn.classList.add('active');
+        mainFrame.src = clickedBtn.getAttribute('data-src');
+    }
+document.getElementById('dismissOrientation').onclick=()=>document.getElementById('orientationHint').classList.add('dismissed');
+if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body>
+</html>

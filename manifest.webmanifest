@@ -1,11 +1,11 @@
 {
-  "name": "分類特訓基地 2.1",
-  "short_name": "分類特訓",
+  "name": "國中生物分類特訓基地 2.2",
+  "short_name": "生物分類",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f0f6f8",
-  "theme_color": "#243b53",
+  "background_color": "#1a252f",
+  "theme_color": "#1a252f",
   "lang": "zh-TW",
   "icons": [
     {

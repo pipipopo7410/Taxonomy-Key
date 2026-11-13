@@ -1,9 +1,231 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>分類・二分叉檢索表</title><style>
-:root{--ink:#1e3346;--line:#9aafbd;--blue:#307cb6;--bg:#f0f6f8}*{box-sizing:border-box}body{margin:0;font-family:system-ui,'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)}.page{height:100dvh;min-height:560px;display:flex;flex-direction:column;padding:9px;gap:9px}.toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:white;padding:9px 12px;border-radius:13px;border:1px solid #d0dfe6;box-shadow:0 3px 14px #23425a12}.toolbar h1{font-size:17px;white-space:nowrap;margin:0 10px 0 0}.ctrl{display:flex;align-items:center;gap:4px}.ctrl label{font-size:12px;font-weight:700;color:#567081}select,button{font:inherit;cursor:pointer}select{color:#244660;font-weight:700;font-size:13px;max-width:180px;border-radius:8px;border:1px solid #b6cdda;background:#f8fbfd;min-height:36px;padding:4px 7px}.ctrl button,.reload{border:0;border-radius:9px;padding:9px 12px;min-height:36px;background:#e7f1f7;color:#275574;font-size:13px;font-weight:750}.reload{background:#2b806b;color:#fff}.tag-row{background:#fff;border:1px solid #cbd9e2;border-radius:13px;padding:8px;display:flex;align-items:center;gap:8px;flex-shrink:0}.tag-label{color:#657988;font-weight:700;font-size:12px;min-width:58px}.tag-library{flex:1;display:flex;gap:7px;overflow-x:auto;align-items:center;padding:3px 2px;scrollbar-width:thin}.tag{border:1px solid #245b91;background:#2f7caf;color:white;border-radius:999px;padding:7px 11px;min-height:37px;white-space:nowrap;font-size:12px;font-weight:750;touch-action:none;user-select:none;cursor:grab}.tag.selected{background:#7a4c9e;outline:3px solid #e1c9f6}.tag:focus-visible,.slot:focus-visible{outline:3px solid #ffb900}.status{font-size:13px;line-height:1.4;min-height:20px;color:#3e697e;font-weight:650}.stage{flex:1;overflow:auto;position:relative;background:#fff;border:1px solid #d0dfe7;border-radius:14px;padding:20px 25px;scrollbar-width:thin}.tree{display:flex;align-items:center;width:max-content;min-width:100%;margin:auto 0}.decision{flex-shrink:0;width:166px;background:#eaf3f9;border:1px solid #c6d6e4;padding:9px;border-radius:12px;text-align:center}.decision .who{font-size:11px;color:#637990;max-height:54px;overflow:auto;margin-bottom:6px}.slot{display:flex;justify-content:center;align-items:center;width:100%;min-height:48px;border:2px dashed #79a4c3;background:white;border-radius:9px;padding:7px;color:#3d7195;font-weight:750;font-size:12px;text-align:center;line-height:1.4;cursor:pointer}.slot.filled{border-style:solid;background:#286d9c;color:white}.slot.hover{background:#dbf6ed;border-color:#22a884;transform:scale(1.035)}.fork{display:flex;flex-direction:column;justify-content:center;position:relative;border-left:2px solid var(--line);margin-left:30px;padding-left:27px;gap:16px}.fork:before{content:"";position:absolute;width:30px;height:2px;background:var(--line);left:-30px;top:50%}.arm{display:flex;align-items:center;gap:18px;position:relative;min-height:65px}.arm:before{content:"";position:absolute;left:-27px;top:50%;width:27px;height:2px;background:var(--line)}.yn{font-size:12px;background:#f6efc8;padding:6px 9px;border-radius:7px;color:#705b18;font-weight:800;flex-shrink:0}.leaf{display:flex;align-items:center;justify-content:center;min-width:99px;max-width:130px;background:#ecf8f0;color:#226447;border:1px solid #95caaa;border-radius:9px;min-height:46px;padding:8px;text-align:center;font-size:12px;font-weight:800}.ghost{position:fixed!important;pointer-events:none!important;z-index:9999;opacity:.85;box-shadow:0 7px 24px #162b4d45}.message{color:#a94a3a!important}.footer{font-size:11px;color:#647b89}@media(max-width:840px){.toolbar h1{width:100%}.toolbar{gap:6px}.stage{padding:13px}.ctrl label{display:none}.page{gap:6px;padding:6px}.tag-label{display:none}}
-button:disabled{opacity:.43;cursor:not-allowed}.tag:focus-visible{outline:3px solid #ffce6a}
-@media(max-width:700px){.toolbar{padding:7px;gap:5px}.ctrl select{max-width:130px}.reload{font-size:12px;padding:7px 8px}.page{min-height:0}}
-.roster{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:0 0 11px;margin-bottom:13px;border-bottom:1px solid #e3eaf0;max-width:100%;position:sticky;left:0;background:white;z-index:5}.roster-label{font-size:12px;font-weight:800;color:#567288;margin-right:4px;white-space:nowrap}.roster-item{font-size:12px;font-weight:750;padding:5px 9px;border:1px solid #cbdce8;border-radius:999px;color:#315b78;background:#eef6fb;white-space:nowrap}
-</style></head><body><div class="page"><div class="toolbar"><h1>第四關｜二分叉檢索表</h1><div class="ctrl"><label for="topic">主題</label><select id="topic"><option value="mixed">五界混合</option><option value="plant">純植物</option><option value="animal">純動物</option></select></div><div class="ctrl"><label for="kind">名稱</label><select id="kind"><option value="type">種類</option><option value="species">真實生物名稱</option></select></div><div class="ctrl"><label for="mode">玩法</label><select id="mode"><option value="forward">正向建構</option><option value="reverse">逆向解謎</option></select></div><div class="ctrl"><label for="count">數量</label><select id="count"><option value="4">簡單 4</option><option value="6" selected>中等 6</option><option value="8">爆難 8</option></select></div><button class="reload" id="undo" type="button" style="background:#e7f1f7;color:#275574" disabled>↶ 撤銷上一步</button><button class="reload" id="reset" type="button">重新出題</button></div><div class="tag-row"><span class="tag-label">分類特徵</span><div class="tag-library" id="tagLibrary"></div></div><div id="status" class="status" aria-live="polite">準備開始…</div><div class="stage" id="stage"><div id="roster" class="roster" aria-label="本題待分類生物"></div><div id="tree" class="tree"></div></div><div class="footer">選擇特徵後點擊虛線框，或將特徵拖曳到虛線框。正確的分類順序不只一種；同一題不會出現相同的代表類群；只有能真正區分生物的特徵才會被接受。</div></div><script src="data.js"></script><script>
+        :root { 
+            --primary-color: #2c3e50; --accent-color: #3498db; --bg-color: #ecf0f1; --line-color: #7f8c8d; 
+            
+            --drop-w: 140px; --drop-h: 45px; --drop-fs: 15px;
+            --cluster-w: 155px; --bubble-w: 100px; 
+            --bubble-pad: 8px 0; --bubble-fs: 16px; 
+            --line-thick: 3px; --margin-gap: 10px;
+        }
+
+        .stage.diff-6 {
+            --drop-w: 120px; --drop-h: 38px; --drop-fs: 14px;
+            --cluster-w: 135px; --bubble-w: 85px; 
+            --bubble-pad: 6px 0; --bubble-fs: 14px; 
+            --line-thick: 2px; --margin-gap: 8px;
+        }
+
+        .stage.diff-10 {
+            --drop-w: 90px; --drop-h: 32px; --drop-fs: 12px;
+            --cluster-w: 115px; --bubble-w: 75px; 
+            --bubble-pad: 4px 0; --bubble-fs: 12px; 
+            --line-thick: 2px; --margin-gap: 4px;
+        }
+
+        body { 
+            font-family: "Helvetica Neue", Arial, sans-serif; background-color: var(--bg-color); 
+            margin: 0; padding: 15px; display: flex; flex-direction: column; 
+            align-items: center; height: 100vh; height: 100dvh; overflow: hidden; box-sizing: border-box;
+            touch-action: none; 
+        }
+
+        .header-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; width: 100%; margin-top: 5px; }
+
+        .control-panel {
+            display: flex; gap: 35px; align-items: center; justify-content: center;
+            background: white; padding: 10px 25px; border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 2px solid #bdc3c7; flex-wrap: nowrap;
+        }
+
+        .control-section { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .control-label { font-size: 13px; color: #7f8c8d; font-weight: bold; }
+        
+        .toggle-group { display: flex; background: #ecf0f1; border-radius: 8px; overflow: hidden; border: 1px solid #bdc3c7; }
+        .toggle-group input[type="radio"] { display: none; }
+        .toggle-group label { padding: 8px 16px; cursor: pointer; font-weight: bold; color: #7f8c8d; transition: 0.3s; font-size: 14px; border-right: 1px solid #bdc3c7; white-space: nowrap; user-select: none; }
+        .toggle-group label:last-child { border-right: none; }
+        
+        .tg-display input[type="radio"]:checked + label { background: #8e44ad; color: white; }
+        .tg-mode input[type="radio"]:checked + label { background: #2980b9; color: white; }
+        
+        input#diff4:checked + label { background: #27ae60; color: white; }
+        input#diff6:checked + label { background: #f39c12; color: white; }
+        input#diff10:checked + label { background: #c0392b; color: white; }
+
+        .btn-restart {
+            background: #9b59b6; color: white; border: none; padding: 10px 20px; border-radius: 8px;
+            font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.15); user-select: none;
+        }
+        .btn-restart:hover { transform: translateY(-2px); background: #8e44ad; box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+        .btn-restart:active { transform: translateY(1px); }
+
+        .tag-library {
+            background: white; width: 98%; max-width: 1400px; min-height: 40px; padding: 8px 15px; border-radius: 10px;
+            display: flex; flex-wrap: wrap; gap: 6px 10px; 
+            justify-content: center; align-items: center; align-content: center;
+            margin-bottom: 10px; border: 2px solid #bdc3c7; box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            z-index: 50; overflow-y: auto; max-height: 90px;
+            -webkit-overflow-scrolling: touch; 
+        }
+
+        .draggable-tag {
+            background-color: var(--accent-color); color: white; padding: 6px 12px;
+            border-radius: 20px; cursor: grab; font-weight: bold; font-size: 13px; 
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2); text-align: center; letter-spacing: 1px;
+            transition: background-color 0.2s, transform 0.1s; white-space: nowrap; user-select: none;
+        }
+        .draggable-tag:hover { background-color: #1f618d; }
+        .draggable-tag:active { cursor: grabbing; transform: scale(0.95); }
+
+        .stage {
+            flex: 1; width: 98%; max-width: 1600px; background: white;
+            border-radius: 12px; padding: 10px 15px 10px 10px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+            display: flex; align-items: center; justify-content: flex-start;
+            transition: all 0.5s ease; position: relative;
+        }
+
+        .tree-container { display: flex; width: 100%; height: 100%; min-width: 100%; }
+        .tree-node { display: flex; flex-direction: row; align-items: center; width: 100%; height: 100%; position: relative; }
+        .node-condition { display: flex; flex-direction: row; align-items: center; position: relative; padding-right: 5px; flex-shrink: 0; }
+
+        .new-box { opacity: 0; transition: opacity 0.3s ease-in; }
+        .new-box.show { opacity: 1; }
+
+        .drop-zone {
+            border: var(--line-thick) dashed #95a5a6; background: #f8f9fa; 
+            width: var(--drop-w); height: var(--drop-h); border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: #34495e; text-align: center; font-size: var(--drop-fs); 
+            z-index: 2; transition: all 0.3s ease; position: relative;
+        }
+        .drop-zone.drag-over { background: #e8f8f5; border-color: #27ae60; transform: scale(1.05); }
+        .drop-zone.filled { border-style: solid; background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .drop-zone.reverse-filled { background: #27ae60; color: white; border-color: #27ae60; }
+
+        .node-branches { display: flex; flex-direction: column; padding-left: 20px; position: relative; flex-grow: 1; height: 100%; min-width: 0; }
+        .branch-path { flex: 1; display: flex; flex-direction: row; align-items: center; position: relative; width: 100%; }
+
+        .branch-path.dynamic.top-branch::before { content: ''; position: absolute; left: -20px; bottom: 0; width: var(--line-thick); height: 50%; background-color: var(--line-color); transform: scaleY(0); transform-origin: bottom; transition: transform 0.4s ease-in-out; }
+        .branch-path.dynamic.bottom-branch::before { content: ''; position: absolute; left: -20px; top: 0; width: var(--line-thick); height: 50%; background-color: var(--line-color); transform: scaleY(0); transform-origin: top; transition: transform 0.4s ease-in-out; }
+        .branch-path.dynamic::after { content: ''; position: absolute; left: -20px; top: 50%; width: 20px; height: var(--line-thick); background-color: var(--line-color); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease-in-out; }
+        
+        .branch-path.static.top-branch::before { content: ''; position: absolute; left: -20px; bottom: 0; width: var(--line-thick); height: 50%; background-color: var(--line-color); }
+        .branch-path.static.bottom-branch::before { content: ''; position: absolute; left: -20px; top: 0; width: var(--line-thick); height: 50%; background-color: var(--line-color); }
+        .branch-path.static::after { content: ''; position: absolute; left: -20px; top: 50%; width: 20px; height: var(--line-thick); background-color: var(--line-color); }
+
+        .branch-label {
+            background: #f1c40f; color: #d35400; padding: 4px 8px; border-radius: 6px;
+            font-size: var(--drop-fs); font-weight: bold; margin-right: var(--margin-gap); opacity: 0; 
+            transition: opacity 0.5s ease-in-out; z-index: 2; display: flex; flex-shrink: 0;
+            flex-direction: column; align-items: center; line-height: 1.1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .branch-label.show { opacity: 1; }
+
+        .node-branches.anim-step1 .branch-path.dynamic::before { transform: scaleY(1); }
+        .node-branches.anim-step2 .branch-path.dynamic::after { transform: scaleX(1); }
+        .node-branches.anim-step2 .branch-label { opacity: 1; }
+
+        .flex-connector {
+            flex-grow: 1; height: 0; border-bottom: var(--line-thick) dashed var(--line-color); 
+            min-width: 10px; margin: 0 var(--margin-gap); clip-path: inset(0 100% 0 0); transition: clip-path 0.5s ease-in-out; 
+        }
+        .flex-connector.show { clip-path: inset(0 0 0 0); }
+        .flex-connector.static { clip-path: inset(0 0 0 0); border-style: solid; }
+
+        .bio-cluster { 
+            display: flex; flex-direction: column; flex-wrap: wrap; align-items: center; justify-content: center; 
+            gap: 4px; width: var(--cluster-w); flex-shrink: 0; position: relative; transition: all 0.5s ease;
+            background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 10px; padding: 6px;
+        }
+        .bio-cluster.done-cluster { background: transparent !important; border-color: transparent !important; padding: 0 !important; }
+
+        .bio-bubble { 
+            width: var(--bubble-w); padding: var(--bubble-pad); margin: 1px 0; border-radius: 6px; 
+            background-color: #e74c3c; color: white; display: flex; align-items: center; justify-content: center; 
+            font-size: var(--bubble-fs); font-weight: bold; box-shadow: 0 3px 5px rgba(0,0,0,0.2); 
+            z-index: 100; letter-spacing: 1px; text-align: center; box-sizing: border-box;
+            transition: transform 1.4s cubic-bezier(0.34, 1.3, 0.64, 1); 
+        }
+        .bio-bubble.done { background-color: #27ae60; }
+        .bio-bubble.static-done { background-color: #27ae60; transition: none; transform: none; }
+
+        .success-msg { color: #27ae60; font-size: var(--drop-fs); font-weight: bold; opacity: 0; transition: opacity 0.5s; width: 0px; flex: 0 0 0px; overflow: visible; transform: translateX(10px); white-space: nowrap; }
+        .success-msg.show { opacity: 1; }
+        
+        .node-branches { display: none; }
+        .node-branches.active { display: flex; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
+        .shake-error { animation: shake 0.3s ease-in-out; border-color: #e74c3c !important; background: #fadbd8 !important; color: #c0392b !important; }
+        .error-msg { color: #e74c3c; font-size: 11px; font-weight: bold; position: absolute; top: -18px; left: 0; white-space: nowrap; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 80%; max-width: 480px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transform: translateY(-20px); transition: transform 0.3s; }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+        .modal-title { color: #2c3e50; font-size: 24px; margin-bottom: 15px; font-weight: bold; }
+        .modal-text { color: #34495e; font-size: 16px; line-height: 1.6; margin-bottom: 25px; }
+        .modal-btn { background: #27ae60; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .modal-btn:hover { background: #2196f3; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+
+        .victory-modal .modal-content { border: 4px solid #f1c40f; background: #fffdf5; }
+        .victory-modal .modal-title { color: #d35400; font-size: 26px; }
+
+    
+/* 2.2: all panels fit viewport, never scroll */
+*{box-sizing:border-box}html,body{height:100%!important;width:100%;overflow:hidden!important;overscroll-behavior:none}
+body{padding:6px 8px 7px;height:100dvh!important}
+.header-area{flex:0 0 auto;margin:0 0 5px}
+.control-panel{gap:clamp(4px,.7vw,12px);padding:6px clamp(4px,.65vw,14px);width:100%;flex-wrap:wrap}
+.control-section{gap:3px;flex:0 0 auto}.control-label{font-size:clamp(9px,.95vw,12px)}
+.toggle-group label{padding:clamp(5px,.7vw,8px) clamp(5px,.8vw,12px);font-size:clamp(10px,1.05vw,14px)}
+.tg-topic input[type="radio"]:checked+label{background:#147b72;color:white}
+.btn-restart,.btn-undo{padding:7px 9px;font-size:clamp(10px,1.1vw,14px);border:none;border-radius:8px;font-weight:750;cursor:pointer}
+.btn-undo{background:#d9e4eb;color:#31596e}.btn-undo:disabled{opacity:.42;cursor:default}
+.tag-library{width:100%;max-width:none;flex:0 0 auto;min-height:40px;max-height:23dvh;overflow:hidden!important;padding:5px 7px;margin:0 0 5px;gap:4px 6px}
+.draggable-tag{padding:5px 9px;font-size:clamp(10px,1vw,13px);min-height:29px;letter-spacing:0;touch-action:none}
+.stage{flex:1;min-height:0;overflow:hidden!important;padding:5px 7px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:3px;position:relative}
+.roster{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;padding:3px 4px;flex:0 0 auto;max-height:52px;overflow:hidden;background:#edf3f7;border-radius:8px}
+.roster-label{font-size:11px;font-weight:750;color:#52697c}.roster-item{border-radius:6px;background:#e74c3c;color:white;font-size:clamp(10px,1vw,13px);padding:4px 7px;font-weight:750}
+.tree-viewport{position:relative;min-height:0;flex:1;width:100%;overflow:hidden!important}
+.tree{position:absolute;top:0;left:0;transform-origin:top left;display:flex;align-items:center;min-height:1px;width:max-content}
+.decision{flex:0 0 auto;width:var(--drop-w);padding:2px 0;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.decision .who{color:#6f8190;font-size:clamp(10px,1.2vw,13px);line-height:1.24;width:calc(var(--drop-w) + 18px);max-height:65px;overflow:hidden}
+.slot{background:#f8f9fa;border:var(--line-thick) dashed #95a5a6;border-radius:8px;min-width:var(--drop-w);height:var(--drop-h);font-size:var(--drop-fs);font-weight:800;cursor:pointer;padding:4px;color:#34495e}
+.slot.filled{background:#2c3e50;border-color:#2c3e50;border-style:solid;color:white}
+.slot.hover{background:#e8f8f5;border-color:#27ae60;transform:scale(1.04)}
+.fork{display:flex;flex-direction:column;position:relative;justify-content:center;border-left:var(--line-thick) solid var(--line-color);padding-left:15px;margin-left:15px;gap:5px}
+.fork:before{content:'';position:absolute;left:-15px;top:50%;height:var(--line-thick);width:15px;background:var(--line-color)}
+.arm{display:flex;align-items:center;gap:9px;position:relative;min-height:51px}
+.arm:before{content:'';position:absolute;left:-15px;top:50%;width:15px;height:var(--line-thick);background:var(--line-color)}
+.yn{background:#f1c40f;color:#9b5e16;padding:5px 7px;border-radius:5px;font-weight:800;font-size:var(--drop-fs)}
+.leaf{width:var(--bubble-w);min-height:32px;background:#27ae60;color:white;padding:var(--bubble-pad);border-radius:6px;font-size:var(--bubble-fs);font-weight:800;box-shadow:0 2px 5px #0002;text-align:center;display:flex;align-items:center;justify-content:center}
+.ghost{position:fixed!important;pointer-events:none!important;z-index:99999;opacity:.88;box-shadow:0 5px 15px #0005}
+.status{margin-top:2px;font-size:clamp(10px,1.0vw,13px);line-height:1.25;font-weight:750;color:#297e79;flex-shrink:0;max-height:21px;overflow:hidden}
+.status.message{color:#b44d34}
+.stage.diff-8{--drop-w:96px;--drop-h:34px;--drop-fs:12px;--cluster-w:118px;--bubble-w:82px;--bubble-pad:6px 4px;--bubble-fs:12px;--line-thick:2px;--margin-gap:5px}
+.stage.diff-6{--drop-w:116px;--drop-h:39px;--drop-fs:13px;--bubble-w:92px;--bubble-fs:13px}
+@media(max-width:750px){.control-panel{gap:4px;justify-content:center}.control-section{gap:1px}.toggle-group label{padding:5px 6px;font-size:10px}.control-label{font-size:9px}.btn-restart,.btn-undo{padding:6px}.tag-library{max-height:24dvh}.draggable-tag{font-size:10px;padding:4px 6px}}
+
+.tag{background-color:#3498db;color:white;padding:6px 10px;border-radius:20px;border:0;cursor:grab;font-weight:bold;font-size:clamp(10px,1.0vw,13px);box-shadow:0 3px 5px rgba(0,0,0,.2);text-align:center;letter-spacing:0;white-space:nowrap;touch-action:none;user-select:none}
+.tag:hover{background:#1f618d}.tag.selected{background:#8e44ad;box-shadow:0 0 0 2px #d5b7ef}
+.tg-diff input:checked+label{background:#f39c12;color:white}#count4:checked+label{background:#27ae60}#count8:checked+label{background:#c0392b}
+.roster{display:none!important}.current-cluster{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#e2e8f0;border:1px solid #cbd5e1;border-radius:10px;padding:6px;width:var(--cluster-w);flex:0 0 var(--cluster-w)}
+.current-cluster .current-bubble{width:var(--bubble-w);padding:var(--bubble-pad);font-size:var(--bubble-fs);border-radius:6px;background:#e74c3c;color:white;font-weight:800;box-shadow:0 3px 5px #0003;text-align:center}
+.cluster-link{height:0;border-top:var(--line-thick) dashed var(--line-color);width:clamp(15px,3vw,45px);flex-shrink:0}
+</style></head><body><div class="header-area"><div class="control-panel">
+<div class="control-section"><div class="control-label">1. 分類主題</div><div class="toggle-group tg-topic"><input name="topicRadio" id="topicMixed" type="radio" data-for="topic" value="mixed" checked><label for="topicMixed">五界混合</label><input name="topicRadio" id="topicPlant" type="radio" data-for="topic" value="plant"><label for="topicPlant">純植物</label><input name="topicRadio" id="topicAnimal" type="radio" data-for="topic" value="animal"><label for="topicAnimal">純動物</label></div></div>
+<div class="control-section"><div class="control-label">2. 顯示名詞</div><div class="toggle-group tg-display"><input name="kindRadio" id="kindType" type="radio" data-for="kind" value="type" checked><label for="kindType">種類</label><input name="kindRadio" id="kindSpecies" type="radio" data-for="kind" value="species"><label for="kindSpecies">真實生物名稱</label></div></div>
+<div class="control-section"><div class="control-label">3. 遊玩模式</div><div class="toggle-group tg-mode"><input name="modeRadio" id="modeForward" type="radio" data-for="mode" value="forward" checked><label for="modeForward">正向建構</label><input name="modeRadio" id="modeReverse" type="radio" data-for="mode" value="reverse"><label for="modeReverse">逆向解謎</label></div></div>
+<div class="control-section"><div class="control-label">4. 難易度</div><div class="toggle-group tg-diff"><input name="countRadio" id="count4" type="radio" data-for="count" value="4"><label for="count4">簡單</label><input name="countRadio" id="count6" type="radio" data-for="count" value="6" checked><label for="count6">中等</label><input name="countRadio" id="count8" type="radio" data-for="count" value="8"><label for="count8">爆難</label></div></div>
+<div class="control-section"><div class="control-label">&nbsp;</div><button class="btn-undo" id="undo" type="button" disabled>↶ 撤銷</button></div>
+<div class="control-section"><div class="control-label">&nbsp;</div><button class="btn-restart" id="reset" type="button">🔄 重新出題</button></div>
+</div></div>
+<div class="tag-library" id="tagLibrary"></div><div class="stage" id="stage"><div id="roster" class="roster"></div><div class="tree-viewport" id="treeViewport"><div id="tree" class="tree"></div></div></div><div id="status" class="status" aria-live="polite">準備開始…</div>
+<div hidden><select id="topic"><option value="mixed">五界</option><option value="plant">植物</option><option value="animal">動物</option></select><select id="kind"><option value="type">種類</option><option value="species">真實生物名稱</option></select><select id="mode"><option value="forward">正向</option><option value="reverse">逆向</option></select><select id="count"><option value="4">4</option><option value="6" selected>6</option><option value="8">8</option></select></div>
+<script src="data.js"></script><script>
 const DB=window.BIO_DATA,topicEl=document.getElementById('topic'),kindEl=document.getElementById('kind'),modeEl=document.getElementById('mode'),countEl=document.getElementById('count'),statusEl=document.getElementById('status'),treeEl=document.getElementById('tree'),tagEl=document.getElementById('tagLibrary');let items=[],tags=[],nodes={},root=null,chosenTag=null,complete=false,lastAction=0;
 const SAVE_KEY='bio-classification-v2-stage4-game-2-1';let rootSnapshot='',moves=[];
 function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:1,settings:{topic:topicEl.value,kind:kindEl.value,mode:modeEl.value,count:countEl.value},itemIds:items.map(x=>x.id),snapshot:rootSnapshot,moves,chosenTag}))}catch(e){}}
@@ -31,12 +253,17 @@ function selectPool(){
 function newTree(group,id){const n={id,group,rule:null,yes:null,no:null};nodes[id]=n;return n}
 function buildReverse(n){if(n.group.length<=1)return;const valid=availableTraits(n.group);if(!valid.length)return;let sorted=mix(valid).sort((a,b)=>Math.abs(n.group.filter(x=>x.traits[a]).length-n.group.length/2)-Math.abs(n.group.filter(x=>x.traits[b]).length-n.group.length/2));let k=sorted[0];n.truth=k;n.yes=newTree(n.group.filter(b=>b.traits[k]),n.id+'Y');n.no=newTree(n.group.filter(b=>!b.traits[k]),n.id+'N');buildReverse(n.yes);buildReverse(n.no)}
 function showStatus(msg,error=false){statusEl.textContent=msg;statusEl.classList.toggle('message',error)}
-function start(){nodes={};chosenTag=null;complete=false;moves=[];const {need,actual}=selectPool();root=newTree(items,'r');if(modeEl.value==='reverse')buildReverse(root);rootSnapshot=JSON.stringify(root);renderTagButtons();render();saveGame();showStatus(actual<need?`此題庫目前有 ${actual} 個可區分的候選類群，本題使用 ${actual} 個，不硬湊 ${need} 個。`:`本題 ${actual} 種，選擇分類特徵開始。`)}
-function renderNode(n){if(n.group.length===1)return `<div class="leaf">${n.group[0].name}</div>`;if(!canSeparate(n.group))return `<div class="leaf">${n.group.map(b=>b.name).join('、')}</div>`;const reverse=modeEl.value==='reverse',shouldShowBranches=reverse||!!n.rule;let section=`<div class="decision"><div class="who">${reverse?'請判讀兩側生物':n.group.map(b=>b.name).join('・')}</div><button type="button" class="slot ${n.rule?'filled':''}" data-node="${n.id}" ${n.rule?'disabled':''}>${n.rule?DB.traits[n.rule]:'＋ 放入分類依據'}</button></div>`;if(shouldShowBranches&&n.yes&&n.no)section+=`<div class="fork"><div class="arm"><span class="yn">是</span>${renderNode(n.yes)}</div><div class="arm"><span class="yn">否</span>${renderNode(n.no)}</div></div>`;return `<div class="tree">${section}</div>`}
+function start(){nodes={};chosenTag=null;complete=false;moves=[];const {need,actual}=selectPool();document.getElementById('stage').className='stage'+(actual>=8?' diff-8':actual>=6?' diff-6':'');root=newTree(items,'r');if(modeEl.value==='reverse')buildReverse(root);rootSnapshot=JSON.stringify(root);renderTagButtons();render();saveGame();showStatus(actual<need?`此題庫目前有 ${actual} 個可區分的候選類群，本題使用 ${actual} 個，不硬湊 ${need} 個。`:`本題 ${actual} 種，選擇分類特徵開始。`)}
+function renderNode(n){if(n.group.length===1)return `<div class="leaf">${n.group[0].name}</div>`;if(!canSeparate(n.group))return `<div class="leaf">${n.group.map(b=>b.name).join('、')}</div>`;
+ const reverse=modeEl.value==='reverse',split=reverse||!!n.rule;
+ let section=`<div class="decision"><button type="button" class="slot ${n.rule?'filled':''}" data-node="${n.id}" ${n.rule?'disabled':''}>${n.rule?DB.traits[n.rule]:'拖曳分類條件'}</button></div>`;
+ if(split&&n.yes&&n.no)section+=`<div class="fork"><div class="arm"><span class="yn">O</span>${renderNode(n.yes)}</div><div class="arm"><span class="yn">X</span>${renderNode(n.no)}</div></div>`;
+ else section+=`<div class="cluster-link"></div><div class="current-cluster">${n.group.map(b=>`<div class="current-bubble">${b.name}</div>`).join('')}</div>`;
+ return `<div class="tree">${section}</div>`}
 function render(){document.getElementById('undo').disabled=moves.length===0;
 const roster=document.getElementById('roster');roster.replaceChildren();let label=document.createElement('span');label.textContent='本題生物';label.className='roster-label';roster.append(label);
 items.forEach(item=>{const chip=document.createElement('span');chip.className='roster-item';chip.textContent=item.name;roster.append(chip)});
-treeEl.innerHTML=renderNode(root);treeEl.querySelectorAll('.slot:not([disabled])').forEach(el=>{el.onclick=()=>{if(!chosenTag){showStatus('先選擇上方一項分類特徵，再點虛線框。',true);return}place(el.dataset.node,chosenTag)};el.addEventListener('pointerenter',()=>el.classList.add('hover'));el.addEventListener('pointerleave',()=>el.classList.remove('hover'))});tagEl.querySelectorAll('.tag').forEach(el=>el.classList.toggle('selected',el.dataset.trait===chosenTag))}
+treeEl.innerHTML=renderNode(root);treeEl.querySelectorAll('.slot:not([disabled])').forEach(el=>{el.onclick=()=>{if(!chosenTag){showStatus('先選擇上方一項分類特徵，再點虛線框。',true);return}place(el.dataset.node,chosenTag)};el.addEventListener('pointerenter',()=>el.classList.add('hover'));el.addEventListener('pointerleave',()=>el.classList.remove('hover'))});tagEl.querySelectorAll('.tag').forEach(el=>el.classList.toggle('selected',el.dataset.trait===chosenTag));requestAnimationFrame(fitTree)}
 function place(id,k){const n=nodes[id];if(!n||n.rule||complete)return;const y=n.group.filter(b=>b.traits[k]===true),no=n.group.filter(b=>b.traits[k]===false);if(!y.length||!no.length){showStatus('這項特徵無法區分目前這一群生物，換一項試試。',true);return}if(modeEl.value==='reverse'){
  const expected=new Set(n.yes.group.map(x=>x.id));if(y.length!==expected.size||y.some(x=>!expected.has(x.id))){showStatus('此特徵會把生物分到不同分支，請再觀察兩側。',true);return}n.rule=k;
 }else{n.rule=k;n.yes=newTree(y,id+'Y');n.no=newTree(no,id+'N')}
@@ -52,7 +279,13 @@ function restoreGame(){try{const saved=JSON.parse(localStorage.getItem(SAVE_KEY)
   for(const id of ['topic','kind','mode','count']){const el=document.getElementById(id),v=saved.settings?.[id];if(![...el.options].some(o=>o.value===v))return false;el.value=v}
   tags=DB.allowed[topicEl.value];const pool=DB.pools[topicEl.value][kindEl.value],dict=new Map(pool.map(b=>[b.id,b]));items=saved.itemIds.map(id=>dict.get(id));if(items.some(b=>!b)||items.length===0)return false;
   rootSnapshot=saved.snapshot;moves=Array.isArray(saved.moves)?saved.moves.filter(m=>m&&typeof m.id==='string'&&tags.includes(m.k)):[];chosenTag=tags.includes(saved.chosenTag)?saved.chosenTag:null;
-  rebuildFromHistory();renderTagButtons();render();showStatus(complete?'已恢復完成的檢索表。':'已恢復上次未完成的檢索表。');return true
+  rebuildFromHistory();renderTagButtons();syncRadios();render();showStatus(complete?'已恢復完成的檢索表。':'已恢復上次未完成的檢索表。');return true
  }catch(e){return false}}
+
+function syncRadios(){document.querySelectorAll('input[data-for]').forEach(r=>{r.checked=document.getElementById(r.dataset.for).value===r.value})}
+document.querySelectorAll('input[data-for]').forEach(r=>r.addEventListener('change',()=>{if(!r.checked)return;const sel=document.getElementById(r.dataset.for);sel.value=r.value;sel.dispatchEvent(new Event('change'))}));
+function fitTree(){const viewport=document.getElementById('treeViewport');if(!viewport||!viewport.clientWidth)return;const tree=document.getElementById('tree');tree.style.transform='none';tree.style.left='0px';tree.style.top='0px';const w=tree.scrollWidth,h=tree.scrollHeight;const sw=viewport.clientWidth,sh=viewport.clientHeight;if(w<1||h<1)return;const factor=Math.min(1,(sw-3)/w,(sh-3)/h);tree.style.transform=`scale(${Math.max(.18,factor)})`;tree.style.left=Math.max(0,(sw-w*factor)/2)+'px';tree.style.top=Math.max(0,(sh-h*factor)/2)+'px'}
+window.addEventListener('resize',()=>requestAnimationFrame(fitTree));
+
 if(!restoreGame())start();
 </script></body></html>
