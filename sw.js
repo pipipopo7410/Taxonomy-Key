@@ -1,5 +1,5 @@
-/* 2.2.2｜範圍限於生物分類單元，線上優先更新頁面、離線回退本機快取 */
-const CACHE='bio-classification-2.2.2-qa';
+/* 2.2.3｜範圍限於生物分類單元，線上優先更新頁面、離線回退本機快取 */
+const CACHE='bio-classification-2.2.3-original-ui';
 const ASSETS=['./','./index.html','./stage1.html','./stage2.html','./stage3.html','./stage4.html','./data.js','./manifest.webmanifest','./unit.json','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('bio-classification-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

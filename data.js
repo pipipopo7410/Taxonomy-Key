@@ -1,6 +1,6 @@
-/* 生物分類 2.2.2｜共用科學特徵資料（國中典型特徵模型） */
+/* 生物分類 2.2.3｜共用科學特徵資料（國中典型特徵模型） */
 window.BIO_DATA={
-  "version": "2.2.2-qa",
+  "version": "2.2.3-ui-preservation",
   "traits": {
     "nucleus": "具有細胞核",
     "wall": "具有細胞壁",
@@ -217,7 +217,7 @@ window.BIO_DATA={
         },
         {
           "id": "pt_mono",
-          "name": "被子植物（單子葉）",
+          "name": "單子葉植物",
           "taxon": "被子植物（單子葉）",
           "group": "plant",
           "traits": {
@@ -247,7 +247,7 @@ window.BIO_DATA={
         },
         {
           "id": "pt_dico",
-          "name": "被子植物（雙子葉）",
+          "name": "雙子葉植物",
           "taxon": "被子植物（雙子葉）",
           "group": "plant",
           "traits": {
@@ -786,7 +786,7 @@ window.BIO_DATA={
         },
         {
           "id": "at_mollusc",
-          "name": "軟體動物（章魚）",
+          "name": "軟體動物",
           "taxon": "軟體動物",
           "group": "animal",
           "traits": {
@@ -815,7 +815,7 @@ window.BIO_DATA={
         },
         {
           "id": "at_insect",
-          "name": "昆蟲（衣魚）",
+          "name": "昆蟲",
           "taxon": "昆蟲",
           "group": "animal",
           "traits": {
@@ -1333,7 +1333,7 @@ window.BIO_DATA={
       "type": [
         {
           "id": "mt_bac",
-          "name": "腐生細菌（例）",
+          "name": "細菌",
           "taxon": "原核生物界",
           "group": "mixed",
           "traits": {
@@ -1417,7 +1417,7 @@ window.BIO_DATA={
         },
         {
           "id": "mt_algae",
-          "name": "藻類（常見光合型）",
+          "name": "藻類",
           "taxon": "原生生物界",
           "group": "mixed",
           "traits": {
@@ -1473,7 +1473,7 @@ window.BIO_DATA={
         },
         {
           "id": "mt_mold",
-          "name": "腐生黴菌（例）",
+          "name": "黴菌",
           "taxon": "真菌界",
           "group": "mixed",
           "traits": {
@@ -1501,7 +1501,7 @@ window.BIO_DATA={
         },
         {
           "id": "mt_plant",
-          "name": "綠色植物（典型）",
+          "name": "綠色植物",
           "taxon": "植物界",
           "group": "mixed",
           "traits": {
@@ -1529,7 +1529,7 @@ window.BIO_DATA={
         },
         {
           "id": "mt_animal",
-          "name": "動物（典型）",
+          "name": "動物",
           "taxon": "動物界",
           "group": "mixed",
           "traits": {
@@ -1587,7 +1587,7 @@ window.BIO_DATA={
         },
         {
           "id": "ms_cyano",
-          "name": "念珠藻（藍菌）",
+          "name": "念珠藻",
           "taxon": "原核生物界",
           "group": "mixed",
           "traits": {
@@ -1936,9 +1936,9 @@ window.BIO_DATA={
     "chloroplast": "葉綠體",
     "mito": "粒線體",
     "ecology": "生態地位",
-    "cellMode": "細胞數",
-    "asex": "常見無性生殖",
-    "sexual": "有性生殖"
+    "cellMode": "單/多細胞",
+    "asex": "常見\n無性生殖",
+    "sexual": "產出遺傳變異的後代"
   },
   "options": {
     "nucleus": [
@@ -1947,9 +1947,8 @@ window.BIO_DATA={
       "不適用"
     ],
     "genetic": [
-      "DNA",
-      "DNA 或 RNA",
-      "不適用"
+      "有",
+      "無"
     ],
     "cytoplasm": [
       "有",
@@ -2019,10 +2018,10 @@ window.BIO_DATA={
   "studyRows": [
     {
       "group": "原核生物界",
-      "name": "球菌（典型）",
+      "name": "球菌",
       "answers": {
         "nucleus": "無",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "有",
@@ -2032,15 +2031,15 @@ window.BIO_DATA={
         "ecology": "多樣",
         "cellMode": "單細胞",
         "asex": "分裂生殖",
-        "sexual": "無"
+        "sexual": "有"
       }
     },
     {
       "group": "原核生物界",
-      "name": "桿菌（典型）",
+      "name": "桿菌",
       "answers": {
         "nucleus": "無",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "有",
@@ -2050,7 +2049,7 @@ window.BIO_DATA={
         "ecology": "多樣",
         "cellMode": "單細胞",
         "asex": "分裂生殖",
-        "sexual": "無"
+        "sexual": "有"
       }
     },
     {
@@ -2058,7 +2057,7 @@ window.BIO_DATA={
       "name": "藍菌",
       "answers": {
         "nucleus": "無",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "有",
@@ -2068,15 +2067,15 @@ window.BIO_DATA={
         "ecology": "生產者",
         "cellMode": "單細胞",
         "asex": "分裂生殖",
-        "sexual": "無"
+        "sexual": "有"
       }
     },
     {
       "group": "原生生物界",
-      "name": "藻類（常見類型）",
+      "name": "藻類",
       "answers": {
         "nucleus": "有",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "部分有",
@@ -2086,15 +2085,15 @@ window.BIO_DATA={
         "ecology": "生產者",
         "cellMode": "單細胞、多細胞",
         "asex": "不在國中討論",
-        "sexual": "部分有"
+        "sexual": "有"
       }
     },
     {
       "group": "原生生物界",
-      "name": "原生動物（典型）",
+      "name": "原生動物",
       "answers": {
         "nucleus": "有",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "無",
@@ -2104,15 +2103,15 @@ window.BIO_DATA={
         "ecology": "消費者",
         "cellMode": "單細胞",
         "asex": "分裂生殖",
-        "sexual": "部分有"
+        "sexual": "有"
       }
     },
     {
       "group": "原生生物界",
-      "name": "原生菌物（課本分類）",
+      "name": "原生菌物",
       "answers": {
         "nucleus": "有",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "部分有",
@@ -2122,15 +2121,15 @@ window.BIO_DATA={
         "ecology": "分解者",
         "cellMode": "不在國中討論",
         "asex": "孢子繁殖",
-        "sexual": "部分有"
+        "sexual": "有"
       }
     },
     {
       "group": "真菌界",
-      "name": "蕈類（典型）",
+      "name": "蕈類",
       "answers": {
         "nucleus": "有",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "有",
@@ -2145,10 +2144,10 @@ window.BIO_DATA={
     },
     {
       "group": "真菌界",
-      "name": "黴菌（典型）",
+      "name": "黴菌",
       "answers": {
         "nucleus": "有",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "有",
@@ -2163,10 +2162,10 @@ window.BIO_DATA={
     },
     {
       "group": "真菌界",
-      "name": "酵母菌（典型）",
+      "name": "酵母菌",
       "answers": {
         "nucleus": "有",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "有",
@@ -2181,10 +2180,10 @@ window.BIO_DATA={
     },
     {
       "group": "植物界",
-      "name": "綠色植物（典型）",
+      "name": "綠色植物",
       "answers": {
         "nucleus": "有",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "有",
@@ -2199,10 +2198,10 @@ window.BIO_DATA={
     },
     {
       "group": "動物界",
-      "name": "動物（典型）",
+      "name": "動物",
       "answers": {
         "nucleus": "有",
-        "genetic": "DNA",
+        "genetic": "有",
         "cytoplasm": "有",
         "membrane": "有",
         "wall": "無",
@@ -2220,7 +2219,7 @@ window.BIO_DATA={
       "name": "病毒",
       "answers": {
         "nucleus": "不適用",
-        "genetic": "DNA 或 RNA",
+        "genetic": "有",
         "cytoplasm": "不適用",
         "membrane": "不適用",
         "wall": "不適用",

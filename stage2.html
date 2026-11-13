@@ -158,12 +158,27 @@ td.good{background:#e7f8eb!important}td.bad{background:#ffe5e3!important}td.bad:
 #examRow .answer-value{display:flex;align-items:center;justify-content:center;min-height:36px;height:100%;width:100%;font-size:clamp(8px,1.1vw,15px);font-weight:750;line-height:1.05;overflow-wrap:anywhere;text-align:center;padding:2px}
 #examRow td select{position:absolute;inset:0;opacity:0;width:100%;height:100%;min-height:0;cursor:pointer}
 #examRow td:focus-within{outline:2px solid #d35400;outline-offset:-2px}
+
+/* 2.2.3：原卷保留，紅筆圈叉、下方手寫訂正；不顯示其他操作區。 */
+#examRow td.clickable{position:relative;padding:1px 1px!important;vertical-align:middle}
+#examRow .original-wrap{width:100%;height:55%;position:relative;display:flex;justify-content:center;align-items:center;overflow:visible}
+#examRow .original-answer{font-weight:750;color:#33465a;font-size:clamp(8px,1.08vw,15px);line-height:1.05;text-align:center;overflow-wrap:anywhere}
+#examRow .red-correction{height:39%;display:flex;justify-content:center;align-items:center;text-align:center;font-family:'Klee One','DFKai-SB','KaiTi',cursive;color:#c62828;font-weight:800;font-size:clamp(8px,1.07vw,16px);line-height:1.06;transform:rotate(-3deg);overflow-wrap:anywhere}
+#examRow .red-pen-svg{position:absolute!important;inset:auto!important;left:50%!important;top:50%!important;width:min(54px,92%)!important;height:36px!important;transform:translate(-50%,-50%) rotate(-7deg);pointer-events:none;z-index:4}
+#examRow td.changed{background:transparent!important}
+#examRow td.changed:after{display:none!important}
+#examRow td.good{background:transparent!important}
+#examRow td.bad{background:rgba(230,62,55,.09)!important}
+#examRow td.bad:after{display:none!important}
+#examRow td select{inset:0;position:absolute;width:100%;height:100%;min-height:0;opacity:0;cursor:pointer}
+#examRow td:focus-within{outline:2px solid #cb5a3c;outline-offset:-2px}
+.paper-container th,.paper-container td{overflow:hidden}
 </style>
 </head>
 <body>
 
     <h2>第二階段：小老師閱卷任務</h2>
-    <p class="instructions">👉 操作說明：檢查同學的筆記；有錯就點該格直接訂正，正確的格子不必改。</p>
+    <p class="instructions">👉 檢查同學的筆記：點選錯誤格子訂正，紅筆圈叉並在下方寫出正確答案。</p>
 
     <div class="paper-container">
         <div class="student-name" id="studentName">正在隨機抽取學生考卷...</div>
@@ -181,8 +196,8 @@ td.good{background:#e7f8eb!important}td.bad{background:#ffe5e3!important}td.bad:
                     <th>葉綠體</th><th>粒線體</th>
                     <th>生態地位</th>
                     <th>單/多細胞</th>
-                    <th>無性生殖</th>
-                    <th>有性生殖</th>
+                    <th>常見<br>無性生殖</th>
+                    <th>產出遺傳變異的後代</th>
                 </tr>
             </thead>
             <tbody>
@@ -198,15 +213,29 @@ td.good{background:#e7f8eb!important}td.bad{background:#ffe5e3!important}td.bad:
     </div>
 
 <script src="data.js"></script><script>
-(()=>{'use strict';const DB=window.BIO_DATA,rows=DB.studyRows,fields=Object.keys(DB.fields),KEY='bio-classification-v2-stage2-session';let state=null;
-const tbody=document.querySelector('#examRow'),nameEl=document.querySelector('#studentName');
-const sample=a=>a[Math.floor(Math.random()*a.length)];function shuffle(a){let o=[...a];for(let i=o.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[o[i],o[j]]=[o[j],o[i]]}return o}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
-function fresh(){const choices=rows.map((_,i)=>i).filter(i=>!state||i!==state.row);const row=sample(choices.length?choices:rows.map((_,i)=>i));const target=rows[row],n=2+Math.floor(Math.random()*3),flipped=shuffle(fields.filter(f=>DB.options[f].some(x=>x!==target.answers[f]))).slice(0,n),initial={},answers={};fields.forEach(f=>{let v=target.answers[f];if(flipped.includes(f))v=sample(DB.options[f].filter(x=>x!==v));initial[f]=v;answers[f]=v});state={row,initial,answers,checked:false,version:1};save();render()}
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.version===1&&rows[s.row]&&fields.every(f=>DB.options[f].includes(s.initial?.[f])&&DB.options[f].includes(s.answers?.[f]))){state=s}}catch(e){}}
-function render(){tbody.replaceChildren();const r=rows[state.row];nameEl.textContent=`📝 糊塗同學的隨堂筆記：【${r.name}】`;
-const first=document.createElement('td');first.textContent=r.group.replace('生物界','').replace('界','');tbody.append(first);const second=document.createElement('td');second.textContent=r.name;tbody.append(second);
-fields.forEach(f=>{const td=document.createElement('td');td.dataset.field=f;td.className='clickable';const sel=document.createElement('select');sel.setAttribute('aria-label',r.name+' '+DB.fields[f]);DB.options[f].forEach(val=>{const o=document.createElement('option');o.textContent=val;o.value=val;sel.append(o)});sel.value=state.answers[f];sel.addEventListener('change',()=>{state.answers[f]=sel.value;state.checked=false;td.classList.toggle('changed',state.answers[f]!==state.initial[f]);tbody.querySelectorAll('td').forEach(c=>c.classList.remove('good','bad'));save()});td.classList.toggle('changed',state.answers[f]!==state.initial[f]);const shown=document.createElement('span');shown.className='answer-value';shown.textContent=sel.value;sel.addEventListener('change',()=>{shown.textContent=sel.value});td.append(shown,sel);tbody.append(td)});if(state.checked)doCheck(false)}
-function doCheck(show=true){let errors=0;fields.forEach(f=>{const td=tbody.querySelector(`td[data-field="${f}"]`);const ok=state.answers[f]===rows[state.row].answers[f];td.classList.toggle('good',ok);td.classList.toggle('bad',!ok);if(!ok)errors++});state.checked=true;save();if(show)alert(errors?`還有 ${errors} 格需要修正，錯誤已用紅筆標記。`:'💯 完美訂正！整張考卷都正確了！')}
-document.querySelector('#submitGrade').onclick=()=>doCheck();document.querySelector('#nextQuiz').onclick=fresh;document.querySelector('#restoreQuiz').onclick=()=>{state.answers={...state.initial};state.checked=false;save();render()};load();if(state)render();else fresh();
+(()=>{'use strict';
+const DB=window.BIO_DATA,rows=DB.studyRows.filter(r=>r.group!=='非五界'),fields=Object.keys(DB.fields),KEY='bio-classification-v2-stage2-handwritten-2.2.3';let state=null;
+const target=document.getElementById('examRow'),student=document.getElementById('studentName');
+const choose=a=>a[Math.floor(Math.random()*a.length)];function shuffle(a){let r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}return r}
+const options=f=>DB.options[f].filter(v=>v!=='不適用'&&v!=='DNA'&&v!=='DNA 或 RNA');
+const circleCross=`<svg class="red-pen-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><ellipse cx="50" cy="50" rx="42" ry="32" class="red-pen-circle" transform="rotate(-5 50 50)"/><line x1="32" y1="35" x2="68" y2="65" class="red-pen-cross cross-line-1"/><line x1="66" y1="33" x2="34" y2="67" class="red-pen-cross cross-line-2"/></svg>`;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
+function newQuiz(){const choices=rows.map((_,i)=>i).filter(i=>!state||i!==state.row),i=choose(choices.length?choices:rows.map((_,i)=>i)),row=rows[i];const n=2+Math.floor(Math.random()*3);
+ const errorCols=shuffle(fields.filter(f=>options(f).some(v=>v!==row.answers[f]))).slice(0,n),initial={},answers={};fields.forEach(f=>{let v=row.answers[f];if(errorCols.includes(f))v=choose(options(f).filter(x=>x!==v));initial[f]=v;answers[f]=v});
+ state={version:2,row:i,initial,answers,checked:false};save();render();}
+function load(){try{let s=JSON.parse(localStorage.getItem(KEY)||'null');if(s?.version!==2||!rows[s.row])return; if(!fields.every(f=>options(f).includes(s.initial?.[f])&&options(f).includes(s.answers?.[f])))return;state=s}catch{}}
+function render(){target.replaceChildren();const r=rows[state.row];student.textContent=`📝 糊塗同學的隨堂筆記：【${r.name}】`;
+for(const text of [r.group.replace('生物界','').replace('界',''),r.name]){const c=document.createElement('td');c.textContent=text;target.append(c)}
+fields.forEach(f=>{const td=document.createElement('td');td.className='clickable';td.dataset.field=f;
+ const original=document.createElement('div');original.className='original-answer';original.textContent=state.initial[f];
+ const originalWrap=document.createElement('div');originalWrap.className='original-wrap';originalWrap.append(original);
+ const note=document.createElement('div');note.className='red-correction';
+ const select=document.createElement('select');select.setAttribute('aria-label',`訂正${r.name}${DB.fields[f]}`);
+ options(f).forEach(v=>{const opt=document.createElement('option');opt.value=v;opt.textContent=v;select.append(opt)});select.value=state.answers[f];
+ const reflect=()=>{const changed=state.answers[f]!==state.initial[f];td.classList.toggle('changed',changed);originalWrap.querySelector('.red-pen-svg')?.remove();if(changed){originalWrap.insertAdjacentHTML('beforeend',circleCross);note.textContent='正：'+state.answers[f]}else note.textContent='';};
+ select.addEventListener('change',()=>{state.answers[f]=select.value;state.checked=false;target.querySelectorAll('td').forEach(c=>c.classList.remove('good','bad'));reflect();save()});
+ td.append(originalWrap,note,select);target.append(td);reflect();});if(state.checked)grade(false);}
+function grade(showAlert=true){let wrong=0;fields.forEach(f=>{const td=target.querySelector(`[data-field="${f}"]`),valid=state.answers[f]===rows[state.row].answers[f];td.classList.toggle('good',valid);td.classList.toggle('bad',!valid);if(!valid)wrong++});state.checked=true;save();if(showAlert)alert(wrong?`還有 ${wrong} 格需要修正。`:'💯 完美訂正！整張考卷都正確了！')}
+document.getElementById('submitGrade').onclick=()=>grade();document.getElementById('nextQuiz').onclick=newQuiz;document.getElementById('restoreQuiz').onclick=()=>{state.answers={...state.initial};state.checked=false;save();render()};
+load();state?render():newQuiz();
 })();</script></body></html>

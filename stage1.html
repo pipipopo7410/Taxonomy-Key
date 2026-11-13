@@ -221,6 +221,19 @@ th.fixed-header{font-size:clamp(8px,1.12vw,13px)} th.interactive-header{font-siz
 td.clickable-cell{font-size:clamp(12px,1.7vw,22px)}.kingdom-text{letter-spacing:0}.cell-content{font-size:inherit;overflow-wrap:anywhere}
 .stamp-cell{font-size:clamp(8px,1.05vw,13px)}.stamp-selector{top:90%;left:-18%;width:137%;font-size:clamp(10px,1.1vw,13px);max-height:45vh}
 @media(max-width:620px){.container{padding:3px}.disclaimer-board{font-size:8px}.instructions{font-size:9px}th,td{font-size:8px}.kingdom-text{font-size:8px}}
+
+/* 2.2.3：只調整第一頁既有表格，不新增捲動容器。 */
+.kingdom-cell{padding:0!important;vertical-align:middle!important;overflow:hidden}
+.kingdom-text{position:static!important;transform:none!important;writing-mode:horizontal-tb!important;-webkit-writing-mode:horizontal-tb!important;display:flex;align-items:center;justify-content:center;width:100%;height:100%;text-align:center;font-size:clamp(17px,2.1vw,27px)!important;font-weight:900;letter-spacing:1px;line-height:1.05}
+th.fixed-header:first-child{font-size:clamp(16px,1.9vw,25px)!important;font-weight:900}
+.subgroup-cell{font-weight:750;font-size:clamp(9px,1.15vw,16px)}
+.header-name{white-space:pre-line;display:block;overflow-wrap:anywhere;line-height:1.12}
+th.interactive-header{word-break:normal!important;overflow-wrap:anywhere}
+tr.row-virus td{min-height:0}
+.stamp-selector{z-index:1000;top:96%;left:-20%;width:140%;max-width:180px;min-width:90px;appearance:auto;border:1px solid #d0d7de;background:white;color:#20313e;box-shadow:0 3px 10px #0004}
+.stamp-cell .cell-content{font-size:clamp(10px,1.15vw,15px);font-weight:750;white-space:pre-line}
+.stamp-cell.active-col{cursor:pointer}
+@media(max-width:620px){.kingdom-text{font-size:clamp(13px,3vw,18px)!important}}
 </style>
 </head>
 <body>
@@ -235,12 +248,12 @@ td.clickable-cell{font-size:clamp(12px,1.7vw,22px)}.kingdom-text{letter-spacing:
 
     <div class="controls-row">
         <button id="checkAnswers" class="check-btn">🔍 檢查答案</button>
-        <div class="instructions">👉 點欄名 → 在欄名下選答案 → 點格子蓋章。全部欄位都在同一畫面，不需捲動。</div>
+        <div class="instructions">👉 點欄名聚焦；生態地位、單／多細胞、常見無性生殖可先選印章，再點格子蓋章。</div>
     </div>
 
     <div class="table-wrapper">
         <table id="biologyTable">
-            <colgroup><col style="width:9%"><col style="width:12%"><col span="12" style="width:6.58333%"></colgroup><thead id="tableHead"></thead>
+            <colgroup><col style="width:10%"><col style="width:12%"><col span="12" style="width:6.5%"></colgroup><thead id="tableHead"></thead>
             <tbody id="tableBody">
                 </tbody>
         </table>
@@ -250,18 +263,65 @@ td.clickable-cell{font-size:clamp(12px,1.7vw,22px)}.kingdom-text{letter-spacing:
 <script src="data.js"></script>
 <script>
 (()=>{'use strict';
-const DB=window.BIO_DATA,rows=DB.studyRows,fields=Object.keys(DB.fields);const LS='bio-classification-stage1-2.0.2-progress';
-const body=document.querySelector('#tableBody'),head=document.querySelector('#tableHead');let values={},focus=null,selected={};
-try{const prev=JSON.parse(localStorage.getItem(LS)||'{}');for(const [k,v] of Object.entries(prev)){const m=/^(\d+)\|([A-Za-z]+)$/.exec(k);if(m&&rows[+m[1]]&&DB.options[m[2]]?.includes(v))values[k]=v}}catch(e){}
+const DB=window.BIO_DATA,rows=DB.studyRows,fields=Object.keys(DB.fields);
+const STAMPS=new Set(['ecology','cellMode','asex']);
+const STAMP_CHOICES={ecology:['生產者','消費者','分解者','多樣'],cellMode:['單細胞','多細胞','無細胞構造','不在國中討論'],asex:['分裂生殖','出芽生殖','孢子繁殖','營養器官繁殖','多樣','不在國中討論']};
+const SPECIAL_STAMPS=new Set(['多樣','不在國中討論','無細胞構造']);
+const STORAGE='bio-classification-stage1-2.2.3-progress';
+const tbody=document.getElementById('tableBody'),thead=document.getElementById('tableHead');
+let values={},focus=null;const selected={};
+try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'{}');Object.entries(saved).forEach(([key,val])=>{const m=/^(\d+)\|([a-zA-Z]+)$/.exec(key);if(m&&rows[Number(m[1])]&&(STAMPS.has(m[2])?String(val).split('、').every(v=>STAMP_CHOICES[m[2]].includes(v)):DB.options[m[2]]?.includes(val)))values[key]=val})}catch{}
 const key=(i,f)=>i+'|'+f;
-function save(){try{localStorage.setItem(LS,JSON.stringify(values))}catch(e){}}
-function focusColumn(f){focus=focus===f?null:f;document.querySelectorAll('[data-col]').forEach(el=>{el.classList.toggle('active-col',!!focus&&el.dataset.col===focus);el.classList.toggle('masked',!!focus&&el.dataset.col!==focus);el.classList.toggle('no-pointer',el.matches('td')&&el.dataset.col!==focus)});}
-function setValue(cell,i,f){if(focus!==f)return;const v=selected[f];if(!v)return;const k=key(i,f);values[k]=values[k]===v?'':v;if(!values[k])delete values[k];cell.querySelector('.cell-content').textContent=values[k]||'';cell.style.color=values[k]?'#2e7ca5':'';cell.classList.remove('incorrect-cell','correct-cell');cell.style.background='';save()}
-function build(){const header=document.createElement('tr');['五界','小分類',...fields.map(f=>DB.fields[f])].forEach((label,n)=>{const th=document.createElement('th');th.textContent=label;th.className=n<2?'fixed-header':'interactive-header';if(n>=2){const f=fields[n-2];th.dataset.col=f;th.textContent='';const txt=document.createElement('span');txt.textContent=label;th.append(txt);const sel=document.createElement('select');sel.className='stamp-selector';sel.setAttribute('aria-label',label+'可選答案');DB.options[f].forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=v;sel.append(op)});selected[f]=DB.options[f][0];sel.value=selected[f];sel.addEventListener('change',e=>{selected[f]=e.target.value;e.stopPropagation()});sel.addEventListener('pointerdown',e=>e.stopPropagation());sel.addEventListener('click',e=>e.stopPropagation());th.append(sel);th.onclick=()=>focusColumn(f)}header.append(th)});head.append(header);
-const counts={};rows.forEach(r=>counts[r.group]=(counts[r.group]||0)+1);const used={};const kClass={'原核生物界':'row-prokaryote','原生生物界':'row-protista','真菌界':'row-fungi','植物界':'row-plantae','動物界':'row-animalia','非五界':'row-virus'};
-rows.forEach((row,i)=>{const tr=document.createElement('tr');tr.className=kClass[row.group]||'row-virus';if(!used[row.group]){used[row.group]=true;const kingdom=document.createElement('td');kingdom.className='kingdom-cell';kingdom.rowSpan=counts[row.group];const kt=document.createElement('div');kt.className='kingdom-text';kt.textContent=row.group==='非五界'?'病毒':row.group.replace('生物界','').replace('界','');kingdom.append(kt);tr.append(kingdom)}const sub=document.createElement('td');sub.textContent=row.name;tr.append(sub);
-fields.forEach(f=>{const td=document.createElement('td');td.dataset.col=f;td.dataset.row=i;td.className='stamp-cell no-pointer';const div=document.createElement('div');div.className='cell-content';div.textContent=values[key(i,f)]||'';td.append(div);td.onclick=()=>setValue(td,i,f);tr.append(td)});body.append(tr)})}
-function checkAnswers(){let wrong=0,missing=0;body.querySelectorAll('td[data-col]').forEach(td=>{const f=td.dataset.col,i=+td.dataset.row,actual=values[key(i,f)]||'',expected=rows[i].answers[f];td.classList.remove('incorrect-cell','correct-cell');if(!actual){missing++;td.style.background='#fff2d8'}else if(actual!==expected){wrong++;td.style.background='#ffe0dc'}else{td.style.background='#e6f7e8'}});if(!wrong&&!missing)alert('全部正確！五界特徵複習完成！');else alert(`還有 ${missing} 格尚未填寫、${wrong} 格需要修正。`)}
-document.querySelector('#checkAnswers').onclick=checkAnswers;build();
+function save(){try{localStorage.setItem(STORAGE,JSON.stringify(values))}catch{}}
+function show(v){if(v==='有')return 'Ｏ';if(v==='無')return '×';if(v==='部分有')return '部分';return v||''}
+function focusColumn(f){focus=focus===f?null:f;document.querySelectorAll('[data-col]').forEach(el=>{
+ const on=!!focus&&el.dataset.col===focus;
+ el.classList.toggle('active-col',on);el.classList.toggle('masked',!!focus&&!on);
+ if(el.tagName==='TD'&&!el.classList.contains('hardcoded-cell'))el.classList.toggle('no-pointer',!on)
+ });}
+function updateCell(td,i,f){const v=values[key(i,f)];const el=td.querySelector('.cell-content');el.textContent=STAMPS.has(f)?show(v).replaceAll('、','\n'):show(v);td.classList.remove('incorrect-cell','correct-cell');td.style.background='';td.style.color=STAMPS.has(f)?'#2476a5':(v==='有'?'#de5846':'#516171');}
+function setValue(td,i,f){if(focus!==f)return;
+ const k=key(i,f),options=DB.options[f],old=values[k]||'';
+ if(STAMPS.has(f)){const chosen=selected[f];if(!chosen)return;let parts=old?old.split('、'):[];
+ if(parts.includes(chosen))parts=parts.filter(x=>x!==chosen);
+ else if(SPECIAL_STAMPS.has(chosen))parts=[chosen];
+ else{parts=parts.filter(x=>!SPECIAL_STAMPS.has(x));parts.push(chosen)}
+ values[k]=parts.join('、');}
+ else{const list=['',...options];values[k]=list[(list.indexOf(old)+1)%list.length]}
+ if(!values[k])delete values[k];updateCell(td,i,f);save();}
+function build(){
+ const tr=document.createElement('tr');['五界','小分類',...fields.map(f=>DB.fields[f])].forEach((label,n)=>{
+ const th=document.createElement('th');th.className=n<2?'fixed-header':'interactive-header';
+ if(n<2)th.textContent=label;
+ else{const f=fields[n-2];th.dataset.col=f;const span=document.createElement('span');span.textContent=label;span.className='header-name';th.append(span);
+ if(STAMPS.has(f)){const sel=document.createElement('select');sel.className='stamp-selector';sel.setAttribute('aria-label',label.replace('\n','')+'印章選擇');
+ STAMP_CHOICES[f].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.append(o)});selected[f]=sel.value;
+ sel.addEventListener('change',e=>{selected[f]=e.target.value;e.stopPropagation()});
+ ['pointerdown','click','touchstart'].forEach(t=>sel.addEventListener(t,e=>e.stopPropagation()));th.append(sel)}
+ th.addEventListener('click',()=>focusColumn(f))}tr.append(th)});thead.append(tr);
+ const count={};rows.forEach(r=>count[r.group]=(count[r.group]||0)+1);const done={};const groups={'原核生物界':'row-prokaryote','原生生物界':'row-protista','真菌界':'row-fungi','植物界':'row-plantae','動物界':'row-animalia','非五界':'row-virus'};
+ rows.forEach((r,i)=>{const row=document.createElement('tr');row.className=groups[r.group]||'row-virus';
+ if(!done[r.group]){done[r.group]=true;const c=document.createElement('td');c.className='kingdom-cell';c.rowSpan=count[r.group];const label=document.createElement('div');label.className='kingdom-text';label.textContent=r.group==='非五界'?'病毒':r.group.replace('生物界','').replace('界','');c.append(label);row.append(c)}
+ const sub=document.createElement('td');sub.className='subgroup-cell';sub.textContent=r.name;row.append(sub);
+ fields.forEach(f=>{const cell=document.createElement('td');cell.dataset.col=f;cell.dataset.row=i;const caption=document.createElement('div');caption.className='cell-content';
+ const notCellular=r.group==='非五界'&&f!=='genetic';
+ cell.className=notCellular?'hardcoded-cell':'stamp-cell no-pointer';cell.append(caption);
+ if(notCellular)caption.textContent='—';else{updateCell(cell,i,f);cell.onclick=()=>setValue(cell,i,f)}row.append(cell)});
+ tbody.append(row)})
+ requestAnimationFrame(equalizeRows);
+}
+function equalizeRows(){// Preserve original table + rowspan, but force 12 matching row heights including virus.
+ const table=document.getElementById('biologyTable');const header=thead.getBoundingClientRect().height;
+ const outer=table.getBoundingClientRect().height;if(!outer)return;
+ const h=Math.max(14,(outer-header-4)/rows.length);
+ tbody.querySelectorAll('tr').forEach(tr=>{tr.style.height=h+'px';tr.style.minHeight=h+'px'});
+}
+function checkAnswers(){let bad=0,blank=0;tbody.querySelectorAll('td[data-col]:not(.hardcoded-cell)').forEach(td=>{
+ const i=Number(td.dataset.row),f=td.dataset.col,v=values[key(i,f)]||'',expected=rows[i].answers[f];
+ td.classList.remove('incorrect-cell','correct-cell');
+ if(!v){blank++;td.style.background='#fff2d8'}else if((STAMPS.has(f)?[...v.split('、')].sort().join('、')!==[...expected.split('、')].sort().join('、'):v!==expected)){bad++;td.style.background='#ffe0dc'}else td.style.background='#e6f7e8';
+ });alert(!bad&&!blank?'全部正確！五界特徵複習完成！':`還有 ${blank} 格尚未填寫、${bad} 格需要修正。`)}
+document.getElementById('checkAnswers').addEventListener('click',checkAnswers);
+window.addEventListener('resize',()=>requestAnimationFrame(equalizeRows));build();
 })();
 </script></body></html>
