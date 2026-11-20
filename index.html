@@ -133,5 +133,6 @@ html,body,.iframe-wrapper{overscroll-behavior:none;overflow:hidden!important}bod
 document.getElementById('dismissOrientation').onclick=()=>document.getElementById('orientationHint').classList.add('dismissed');
 if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script>
+<script src="./home-button.js"></script>
 </body>
 </html>
